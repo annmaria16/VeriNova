@@ -20,8 +20,8 @@ export default function Hero() {
     >
       {/* Subtle Grid Overlay and Glowing Backgrounds */}
       <div className="absolute inset-0 bg-grid-pattern opacity-100 pointer-events-none"></div>
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#FF6B00]/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#FF8A1F]/5 rounded-full blur-[150px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full z-10 grid lg:grid-cols-2 gap-16 items-center">
         {/* Left Content */}
@@ -32,41 +32,40 @@ export default function Hero() {
           className="text-left"
         >
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-dash-primary/10 border border-dash-primary/30 shadow-[0_4px_12px_rgba(139,92,246,0.08)] mb-6">
-            <Sparkles size={14} className="text-dash-primary animate-pulse" />
-            <span className="text-dash-primary text-xs font-black uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF3E8] border border-[#FF6B00]/30 shadow-[0_4px_12px_rgba(255,107,0,0.08)] mb-6">
+            <Sparkles size={14} className="text-[#FF6B00] animate-pulse" />
+            <span className="text-[#FF6B00] text-xs font-black uppercase tracking-wider">
               AI OUTCOME VERIFICATION PLATFORM
             </span>
           </div>
 
           {/* Title */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-dash-text leading-tight tracking-tight">
-            AI Executes.
-            <span className="block mt-2 bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] bg-clip-text text-transparent drop-shadow-[0_4px_15px_rgba(139,92,246,0.25)]">
-              VeriNova Verifies.
+            Verify AI Outcomes
+            <span className="block mt-2 bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] bg-clip-text text-transparent drop-shadow-[0_4px_15px_rgba(255,107,0,0.15)]">
+              Before You Trust Them
             </span>
-            You Trust with Confidence.
           </h1>
 
           {/* Subheading */}
           <p className="mt-6 text-dash-secondary text-base sm:text-lg leading-relaxed max-w-xl font-bold">
-            Describe what you need. Our AI Assistant searches products, compares prices, 
-            books reservations, executes purchases, verifies the outcome, and compiles 
-            tamper-proof receipts automatically—all in one premium interface.
+            Empower your automated systems with independent validation.
+            VeriNova uses multi-source evidence collection, confidence scoring,
+            and cryptographic logs to certify AI decisions in real time.
           </p>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Link
               to="/register"
-              className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_25px_rgba(236,72,153,0.45)] transform hover:scale-[1.02] transition-all duration-300"
+              className="glow-btn bg-[#FF6B00] hover:bg-[#FF7A00] text-white font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-[0_4px_15px_rgba(255,107,0,0.2)] hover:shadow-[0_6px_25px_rgba(255,107,0,0.35)] transform hover:scale-[1.02] transition-all duration-300"
             >
               Get Started
               <ArrowRight size={20} />
             </Link>
 
-            <button className="border border-dash-border bg-dash-card hover:bg-dash-primary/5 text-dash-text hover:text-dash-primary px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:border-[#8B5CF6]/40 transition-all duration-300 group cursor-pointer font-bold">
-              <span className="p-1 rounded-full bg-dash-primary/10 text-dash-primary group-hover:bg-dash-primary group-hover:text-white transition-all duration-300">
+            <button className="border-2 border-[#FF6B00] bg-white text-[#FF6B00] hover:bg-[#FFFCF9] px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm transition-all duration-300 group cursor-pointer font-bold">
+              <span className="p-1 rounded-full bg-[#FFF3E8] text-[#FF6B00] group-hover:bg-[#FF6B00] group-hover:text-white transition-all duration-300">
                 <Play size={14} fill="currentColor" />
               </span>
               Watch Demo
@@ -85,7 +84,7 @@ export default function Hero() {
           <div className="relative w-full max-w-[440px] aspect-square flex items-center justify-center">
             
             {/* Center Glowing Orbit Ring Base */}
-            <div className="absolute w-[74%] h-[74%] rounded-full bg-radial-gradient from-[#8B5CF6]/5 to-transparent pointer-events-none"></div>
+            <div className="absolute w-[74%] h-[74%] rounded-full bg-radial-gradient from-[#FF6B00]/5 to-transparent pointer-events-none"></div>
 
             {/* Breathing Animation Background Pulse */}
             <motion.div
@@ -98,30 +97,30 @@ export default function Hero() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute w-[78%] h-[78%] rounded-full border-2 border-[#8B5CF6] filter blur-[8px] pointer-events-none"
+              className="absolute w-[78%] h-[78%] rounded-full border-2 border-[#FF6B00] filter blur-[8px] pointer-events-none"
             />
 
             {/* Glowing rotating ring - slow outer rotation */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[80%] h-[80%] rounded-full border-2 border-dashed border-[#8B5CF6]/30 shadow-[0_0_15px_rgba(139,92,246,0.05)]"
+              className="absolute w-[80%] h-[80%] rounded-full border-2 border-dashed border-[#FF6B00]/30 shadow-[0_0_15px_rgba(255,107,0,0.05)]"
             />
 
             {/* Inner Rotating Ring */}
             <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[66%] h-[66%] rounded-full border border-dashed border-[#22D3EE]/20"
+              className="absolute w-[66%] h-[66%] rounded-full border border-dashed border-[#FF8A1F]/20"
             />
 
             {/* SVG Network Connections & Flowing Tracers */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
               <defs>
                 <linearGradient id="tracerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.85" />
-                  <stop offset="50%" stopColor="#EC4899" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#22D3EE" stopOpacity="0.95" />
+                  <stop offset="0%" stopColor="#FF6B00" stopOpacity="0.85" />
+                  <stop offset="50%" stopColor="#FF7A00" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#FF8A1F" stopOpacity="0.95" />
                 </linearGradient>
               </defs>
 
@@ -162,7 +161,7 @@ export default function Hero() {
                 strokeDasharray="10 15"
                 animate={{ strokeDashoffset: [0, -50] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="filter drop-shadow-[0_0_6px_rgba(139,92,246,0.8)]"
+                className="filter drop-shadow-[0_0_6px_rgba(255,107,0,0.8)]"
               />
               
               <motion.path
@@ -173,7 +172,7 @@ export default function Hero() {
                 strokeDasharray="8 12"
                 animate={{ strokeDashoffset: [0, -40] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                className="filter drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]"
+                className="filter drop-shadow-[0_0_4px_rgba(255,138,31,0.6)]"
               />
 
               <motion.path
@@ -184,7 +183,7 @@ export default function Hero() {
                 strokeDasharray="8 12"
                 animate={{ strokeDashoffset: [0, -40] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                className="filter drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]"
+                className="filter drop-shadow-[0_0_4px_rgba(255,138,31,0.6)]"
               />
             </svg>
 
@@ -197,9 +196,9 @@ export default function Hero() {
               animate={{
                 y: [0, -4, 0],
                 boxShadow: [
-                  "0 4px 20px rgba(139,92,246,0.2)",
-                  "0 4px 30px rgba(139,92,246,0.45)",
-                  "0 4px 20px rgba(139,92,246,0.2)"
+                  "0 4px 20px rgba(255,107,0,0.15)",
+                  "0 4px 30px rgba(255,107,0,0.35)",
+                  "0 4px 20px rgba(255,107,0,0.15)"
                 ]
               }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -256,15 +255,15 @@ export default function Hero() {
               animate={{
                 scale: [1, 1.05, 1],
                 boxShadow: [
-                  "0 8px 30px rgba(139,92,246,0.25)",
-                  "0 8px 45px rgba(34,211,238,0.45)",
-                  "0 8px 30px rgba(139,92,246,0.25)"
+                  "0 8px 30px rgba(255,107,0,0.15)",
+                  "0 8px 45px rgba(255,138,31,0.3)",
+                  "0 8px 30px rgba(255,107,0,0.15)"
                 ]
               }}
               transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[8%] z-20 w-24 h-24 rounded-full border-2 border-[#22D3EE] bg-dash-card flex flex-col items-center justify-center"
+              className="absolute bottom-[8%] z-20 w-24 h-24 rounded-full border-2 border-[#FF6B00] bg-dash-card flex flex-col items-center justify-center"
             >
-              <ShieldCheck size={36} className="text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+              <ShieldCheck size={36} className="text-[#FF6B00] drop-shadow-[0_0_8px_rgba(255,107,0,0.5)]" />
               <span className="text-[10px] font-black text-dash-text mt-1 tracking-widest uppercase">
                 VERIFIED
               </span>
@@ -293,7 +292,7 @@ export default function Hero() {
                 width: particle.size,
                 height: particle.size,
               }}
-              className="absolute rounded-full bg-[#EC4899]/25 shadow-[0_0_6px_rgba(139,92,246,0.3)] pointer-events-none"
+              className="absolute rounded-full bg-[#FF8A1F]/25 shadow-[0_0_6px_rgba(255,107,0,0.3)] pointer-events-none"
             />
           ))}
         </motion.div>

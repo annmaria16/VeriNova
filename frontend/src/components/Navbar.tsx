@@ -97,7 +97,7 @@ export default function Navbar() {
           }}
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] p-2 rounded-xl shadow-lg shadow-violet-500/10 group-hover:shadow-[#8B5CF6]/30 transition-all duration-300">
+          <div className="bg-gradient-to-br from-[#FF6B00] to-[#FF8A1F] p-2 rounded-xl shadow-lg shadow-orange-500/10 group-hover:shadow-[#FF6B00]/30 transition-all duration-300">
             <ShieldCheck className="text-white" size={24} />
           </div>
           <div className="text-left">
@@ -163,7 +163,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/register"
-                className="relative overflow-hidden group bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-90 px-5 py-2.5 rounded-xl text-white text-sm font-bold shadow-[0_4px_12px_rgba(139,92,246,0.2)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.35)] transition-all duration-300 text-center"
+                className="relative overflow-hidden group bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-90 px-5 py-2.5 rounded-xl text-white text-sm font-bold shadow-[0_4px_12px_rgba(255,107,0,0.2)] hover:shadow-[0_6px_20px_rgba(255,138,31,0.35)] transition-all duration-300 text-center"
               >
                 <span className="relative z-10 flex items-center gap-1">Get Started &rarr;</span>
               </Link>
@@ -237,8 +237,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     to="/register"
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] text-white font-bold rounded-xl py-2.5 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/30 transition-colors text-center"
+                    className="w-full bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] text-white font-bold rounded-xl py-2.5 shadow-lg shadow-orange-500/10 hover:shadow-orange-500/30 transition-colors text-center"
                   >
                     Get Started
                   </Link>

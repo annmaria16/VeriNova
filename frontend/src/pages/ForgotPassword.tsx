@@ -287,7 +287,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={!isEmailValid || isSubmitting}
-              className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-violet-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-2 w-full disabled:cursor-not-allowed"
+              className="glow-btn bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-orange-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-2 w-full disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -347,7 +347,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={otp.join("").length !== 6 || isSubmitting}
-              className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-violet-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-1 w-full disabled:cursor-not-allowed"
+              className="glow-btn bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-orange-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-1 w-full disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -485,7 +485,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={!isFormValid || isSubmitting}
-              className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-violet-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-2 w-full disabled:cursor-not-allowed"
+              className="glow-btn bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3 shadow-md shadow-orange-500/10 disabled:shadow-none hover:shadow-lg transition-all cursor-pointer mt-2 w-full disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

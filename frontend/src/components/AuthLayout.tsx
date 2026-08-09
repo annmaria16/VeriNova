@@ -12,14 +12,14 @@ interface AuthLayoutProps {
 export default function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
     <div className="min-h-screen bg-dash-bg text-dash-text flex flex-col relative overflow-hidden bg-grid-pattern">
-      {/* Background radial glow spots */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#8B5CF6]/5 rounded-full blur-[150px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[150px] pointer-events-none"></div>
+      {/* Decorative Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#FF6B00]/5 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#FF8A1F]/5 rounded-full blur-[150px] pointer-events-none"></div>
 
       {/* Header bar */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between z-10">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] p-2 rounded-xl shadow-lg shadow-violet-500/10">
+          <div className="bg-gradient-to-br from-[#FF6B00] to-[#FF8A1F] p-2 rounded-xl shadow-lg shadow-orange-500/10 group-hover:shadow-orange-500/30 transition-all duration-300">
             <ShieldCheck className="text-white" size={24} />
           </div>
           <div className="text-left">
@@ -39,10 +39,10 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-[480px] bg-dash-card border border-dash-border rounded-2xl p-8 sm:p-10 shadow-xl relative overflow-hidden"
+          className="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 relative overflow-hidden"
         >
-          {/* Decorative internal glow */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-[#8B5CF6]/5 blur-[25px] rounded-full pointer-events-none"></div>
+          {/* Card subtle back light */}
+          <div className="absolute top-0 right-0 w-36 h-36 bg-[#FF6B00]/5 blur-[25px] rounded-full pointer-events-none"></div>
 
           {/* Heading slot */}
           <div className="text-center mb-8">

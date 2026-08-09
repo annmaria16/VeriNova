@@ -38,8 +38,8 @@ export default function ChartCard({
       <svg className="w-full h-32" viewBox="0 0 400 120" preserveAspectRatio="none">
         <defs>
           <linearGradient id="areaGlowCard" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+            <stop offset="0%" stopColor="#FF6B00" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#FF6B00" stopOpacity="0" />
           </linearGradient>
         </defs>
         
@@ -55,7 +55,7 @@ export default function ChartCard({
         <motion.polyline
           points={points}
           fill="none"
-          stroke="#8B5CF6"
+          stroke="#FF6B00"
           strokeWidth="2.5"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
@@ -63,12 +63,12 @@ export default function ChartCard({
         />
         
         {/* Endpoint dots */}
-        <circle cx="0" cy="80" r="3.5" fill="#8B5CF6" />
-        <circle cx="80" cy="45" r="3.5" fill="#8B5CF6" />
-        <circle cx="160" cy="50" r="3.5" fill="#8B5CF6" />
-        <circle cx="240" cy="25" r="3.5" fill="#8B5CF6" />
-        <circle cx="320" cy="15" r="3.5" fill="#8B5CF6" />
-        <circle cx="400" cy="10" r="4.5" fill="#22D3EE" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+        <circle cx="0" cy="80" r="3.5" fill="#FF6B00" />
+        <circle cx="80" cy="45" r="3.5" fill="#FF6B00" />
+        <circle cx="160" cy="50" r="3.5" fill="#FF6B00" />
+        <circle cx="240" cy="25" r="3.5" fill="#FF6B00" />
+        <circle cx="320" cy="15" r="3.5" fill="#FF6B00" />
+        <circle cx="400" cy="10" r="4.5" fill="#FF8A1F" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
       </svg>
     );
   };
@@ -179,7 +179,7 @@ export default function ChartCard({
                   initial={{ height: 0 }}
                   animate={{ height: `${h}%` }}
                   transition={{ duration: 0.8, delay: i * 0.1 }}
-                  className="w-full bg-gradient-to-t from-[#22D3EE] via-[#EC4899] to-[#8B5CF6] rounded-t-[4px] shadow-[0_2px_6px_rgba(139,92,246,0.15)] hover:opacity-95"
+                  className="w-full bg-gradient-to-t from-[#FF6B00] via-[#FF8A1F] to-[#FFF3E8] rounded-t-[4px] shadow-[0_2px_6px_rgba(255,107,0,0.15)] hover:opacity-95"
                 />
               </div>
               <span className="text-[9px] text-dash-secondary font-black">{days[i]}</span>
@@ -240,7 +240,7 @@ export default function ChartCard({
           <motion.polyline
             points={points}
             fill="none"
-            stroke="#8B5CF6"
+            stroke="#FF6B00"
             strokeWidth="3"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -249,10 +249,10 @@ export default function ChartCard({
           />
 
           {/* Data point circles */}
-          <circle cx="10" cy={getSvgY(counts[0])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
-          <circle cx="130" cy={getSvgY(counts[1])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
-          <circle cx="250" cy={getSvgY(counts[2])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
-          <circle cx="370" cy={getSvgY(counts[3])} r="5.5" fill="#22D3EE" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="2" />
+          <circle cx="10" cy={getSvgY(counts[0])} r="4.5" fill="#FF6B00" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="130" cy={getSvgY(counts[1])} r="4.5" fill="#FF6B00" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="250" cy={getSvgY(counts[2])} r="4.5" fill="#FF6B00" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="370" cy={getSvgY(counts[3])} r="5.5" fill="#FF8A1F" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="2" />
         </svg>
 
         {/* Labels */}

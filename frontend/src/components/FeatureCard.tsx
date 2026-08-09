@@ -19,14 +19,14 @@ export default function FeatureCard({ icon: Icon, title, description, delay = 0 
       className="glass-panel glass-panel-hover group relative rounded-2xl p-8 flex flex-col justify-between overflow-hidden cursor-pointer"
     >
       {/* Decorative Gradient Background (visible on hover) */}
-      <div className="absolute -inset-px bg-gradient-to-br from-[#8B5CF6]/0 via-transparent to-[#22D3EE]/0 group-hover:from-[#8B5CF6]/5 group-hover:to-[#22D3EE]/10 rounded-2xl transition-all duration-500 pointer-events-none -z-10" />
+      <div className="absolute -inset-px bg-gradient-to-br from-[#FF6B00]/0 via-transparent to-[#FF8A1F]/0 group-hover:from-[#FF6B00]/5 group-hover:to-[#FF8A1F]/10 rounded-2xl transition-all duration-500 pointer-events-none -z-10" />
 
       {/* Floating back-glow particle inside card */}
-      <div className="absolute -bottom-10 -right-10 w-28 h-28 bg-[#8B5CF6]/2 blur-[25px] rounded-full group-hover:bg-[#22D3EE]/10 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+      <div className="absolute -bottom-10 -right-10 w-28 h-28 bg-[#FF6B00]/2 blur-[25px] rounded-full group-hover:bg-[#FF8A1F]/10 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
 
       <div className="text-left">
         {/* Animated Icon Ring */}
-        <div className="w-12 h-12 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center text-dash-primary group-hover:text-white group-hover:bg-[#8B5CF6] group-hover:border-[#8B5CF6] group-hover:shadow-[0_8px_20px_rgba(139,92,246,0.25)] transition-all duration-300 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center text-dash-primary group-hover:text-white group-hover:bg-[#FF6B00] group-hover:border-[#FF6B00] group-hover:shadow-[0_8px_20px_rgba(255,107,0,0.25)] transition-all duration-300 mb-6">
           <Icon size={24} className="group-hover:rotate-6 transition-transform" />
         </div>
 

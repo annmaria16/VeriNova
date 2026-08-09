@@ -709,7 +709,7 @@ export default function Dashboard() {
               </div>
 
               {/* Terminal logs timeline panel */}
-              <div className="bg-dash-bg border border-dash-border/60 rounded-xl p-4 font-mono text-[11px] text-[#22D3EE] h-32 overflow-y-auto space-y-1.5 scrollbar-thin text-left">
+              <div className="bg-dash-bg border border-dash-border/60 rounded-xl p-4 font-mono text-[11px] text-[#FF8A1F] h-32 overflow-y-auto space-y-1.5 scrollbar-thin text-left">
                 {verificationLogs.map((log, index) => (
                   <div key={index} className="leading-relaxed font-semibold">{log}</div>
                 ))}
@@ -1069,9 +1069,9 @@ export default function Dashboard() {
                     <svg className="w-full h-full transform -rotate-90">
                       <defs>
                         <linearGradient id="scorecardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#8B5CF6" />
-                          <stop offset="50%" stopColor="#EC4899" />
-                          <stop offset="100%" stopColor="#22D3EE" />
+                          <stop offset="0%" stopColor="#FF6B00" />
+                          <stop offset="50%" stopColor="#FF7A00" />
+                          <stop offset="100%" stopColor="#FF8A1F" />
                         </linearGradient>
                       </defs>
                       <circle
@@ -1102,7 +1102,7 @@ export default function Dashboard() {
                     <div className="absolute flex flex-col items-center">
                       <span className="text-2xl font-black text-dash-text tracking-tight">{verificationResultDetails.confidence_score}%</span>
                       <span className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${
-                        verificationResultDetails.confidence_score >= 80 ? "text-[#22D3EE]" : "text-[#EF4444]"
+                        verificationResultDetails.confidence_score >= 80 ? "text-[#FF6B00]" : "text-[#EF4444]"
                       }`}>
                         {verificationResultDetails.confidence_score >= 80 ? "VERIFIED" : "FAILED"}
                       </span>
@@ -2691,7 +2691,7 @@ function AdminDashboardView({
                   type="text"
                   readOnly
                   value={inviteUrl}
-                  className="flex-1 bg-black/40 border border-dash-border/60 rounded-xl px-3 py-2 text-xs text-[#22D3EE] font-mono select-all focus:outline-none"
+                  className="flex-1 bg-black/40 border border-dash-border/60 rounded-xl px-3 py-2 text-xs text-[#FF8A1F] font-mono select-all focus:outline-none"
                 />
                 <button
                   onClick={copyInviteLink}

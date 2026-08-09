@@ -148,8 +148,8 @@ export function VerificationActivityChart() {
           <svg className="w-full h-full overflow-visible z-10" viewBox="0 0 380 110" preserveAspectRatio="none">
             <defs>
               <linearGradient id="glowCurve" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+                <stop offset="0%" stopColor="#FF6B00" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#FF6B00" stopOpacity="0" />
               </linearGradient>
             </defs>
 
@@ -160,7 +160,7 @@ export function VerificationActivityChart() {
             <motion.polyline
               points={pointsStr}
               fill="none"
-              stroke="#8B5CF6"
+              stroke="#FF6B00"
               strokeWidth="2.5"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
@@ -178,7 +178,7 @@ export function VerificationActivityChart() {
                   cx={x}
                   cy={y}
                   r={isMajor ? 4.5 : 3.5}
-                  fill={isMajor ? "#22D3EE" : "#8B5CF6"}
+                  fill={isMajor ? "#FF8A1F" : "#FF6B00"}
                   stroke={isMajor ? (theme === "dark" ? "#0A0D18" : "#FFFFFF") : "none"}
                   strokeWidth={isMajor ? 1.5 : 0}
                 />
@@ -283,13 +283,13 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
               style={{ transform: `rotate(${(verifiedPercent / 100) * 360}deg)` }}
             />
 
-            {/* Running segment (cyan) */}
+            {/* Running segment (orange) */}
             <motion.circle
               cx="50"
               cy="50"
               r="42"
               fill="transparent"
-              stroke="#22D3EE"
+              stroke="#FF6B00"
               strokeWidth="9"
               strokeDasharray={circ}
               initial={{ strokeDashoffset: circ }}
@@ -347,7 +347,7 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 bg-[#22D3EE] rounded-full" />
+              <div className="w-2.5 h-2.5 bg-[#FF6B00] rounded-full" />
               <span className="text-dash-secondary">Running</span>
             </div>
             <span className="text-dash-text font-mono">{runningPercent}% ({running})</span>

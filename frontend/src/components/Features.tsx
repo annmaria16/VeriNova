@@ -38,8 +38,8 @@ export default function Features() {
   return (
     <section id="features" className="relative py-24 bg-dash-bg overflow-hidden">
       {/* Decorative Orbs */}
-      <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-[#8B5CF6]/4 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#22D3EE]/4 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-[#FF6B00]/4 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#FF8A1F]/4 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         

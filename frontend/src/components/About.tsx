@@ -23,7 +23,7 @@ export default function About() {
   return (
     <section id="about" className="relative py-24 bg-dash-bg overflow-hidden">
       {/* Decorative Orbs */}
-      <div className="absolute top-1/4 right-0 w-[300px] h-[300px] bg-[#8B5CF6]/4 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute top-1/4 right-0 w-[300px] h-[300px] bg-[#FF6B00]/4 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -75,7 +75,7 @@ export default function About() {
           >
             <div className="w-full max-w-[450px] bg-dash-card/50 backdrop-blur-md border border-dash-border/60 rounded-3xl p-6 shadow-xl relative overflow-hidden text-left">
               {/* Internal card background glow */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-[#8B5CF6]/5 blur-[30px] rounded-full"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF6B00]/5 blur-[30px] rounded-full"></div>
 
               {/* Certificate Header */}
               <div className="flex justify-between items-center border-b border-dash-border/60 pb-4 mb-6">
@@ -94,7 +94,7 @@ export default function About() {
                 <div className="flex justify-between items-center text-sm border-b border-dash-border/40 pb-3">
                   <span className="text-dash-secondary font-semibold">Source Model</span>
                   <span className="text-dash-text font-mono flex items-center gap-1.5 bg-dash-bg px-2 py-0.5 rounded border border-dash-border">
-                    <Sparkles size={12} className="text-[#8B5CF6]" />
+                    <Sparkles size={12} className="text-[#FF6B00]" />
                     Claude 3.5 Sonnet
                   </span>
                 </div>
@@ -123,7 +123,7 @@ export default function About() {
               </div>
 
               {/* Decorative scan line element */}
-              <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#8B5CF6]/40 to-transparent mt-6"></div>
+              <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF6B00]/40 to-transparent mt-6"></div>
               <p className="text-center text-dash-secondary text-[10px] font-bold mt-3">
                 Protected by VeriNova Zero-Trust Execution Layer
               </p>

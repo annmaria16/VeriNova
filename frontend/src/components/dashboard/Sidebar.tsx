@@ -101,7 +101,7 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className={`p-6 border-b border-dash-border flex items-center justify-between transition-all duration-300 ${isCollapsed ? "justify-center px-4" : ""}`}>
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveModule("dashboard")}>
-          <div className="bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] p-2 rounded-xl shadow-lg shadow-violet-500/10 flex-shrink-0">
+          <div className="bg-gradient-to-br from-[#FF6B00] to-[#FF8A1F] p-2 rounded-xl shadow-lg shadow-orange-500/10 flex-shrink-0">
             <ShieldCheck className="text-white" size={24} />
           </div>
           {!isCollapsed && (
@@ -140,17 +140,17 @@ export default function Sidebar({
                 setSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 group cursor-pointer relative ${isActive
-                  ? "bg-dash-primary/10 text-dash-primary border border-dash-primary/20 shadow-[0_4px_12px_rgba(139,92,246,0.03)]"
+                  ? "bg-dash-primary/10 text-dash-primary border border-dash-primary/20 shadow-[0_4px_12px_rgba(255,107,0,0.03)]"
                   : "text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 border border-transparent"
                 } ${isCollapsed ? "justify-center px-2" : ""}`}
               title={isCollapsed ? item.label : undefined}
             >
               {/* Left active status indicator line */}
               {isActive && (
-                <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-dash-primary rounded-r-md shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+                <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-dash-primary rounded-r-md shadow-[0_0_8px_rgba(255,107,0,0.8)]" />
               )}
 
-              <div className={`transition-transform duration-200 group-hover:scale-105 ${isActive ? "text-dash-primary filter drop-shadow-[0_0_5px_rgba(139,92,246,0.5)]" : "text-dash-secondary group-hover:text-dash-primary"}`}>
+              <div className={`transition-transform duration-200 group-hover:scale-105 ${isActive ? "text-dash-primary filter drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]" : "text-dash-secondary group-hover:text-dash-primary"}`}>
                 {item.icon}
               </div>
 
@@ -165,7 +165,7 @@ export default function Sidebar({
               )}
 
               {item.badge !== undefined && (
-                <span className={`flex items-center justify-center font-black rounded-full ${isCollapsed ? "absolute -top-1.5 -right-1 text-[8px] w-4.5 h-4.5 bg-dash-primary text-white shadow-[0_2px_8px_rgba(139,92,246,0.3)]" : "text-[9px] px-2 py-0.5 bg-dash-primary/15 text-dash-primary"
+                <span className={`flex items-center justify-center font-black rounded-full ${isCollapsed ? "absolute -top-1.5 -right-1 text-[8px] w-4.5 h-4.5 bg-dash-primary text-white shadow-[0_2px_8px_rgba(255,107,0,0.3)]" : "text-[9px] px-2 py-0.5 bg-dash-primary/15 text-dash-primary"
                   }`}>
                   {item.badge}
                 </span>
@@ -188,7 +188,7 @@ export default function Sidebar({
           aria-haspopup="menu"
           aria-expanded={openDropdown === "sidebar-user"}
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-dash-primary to-[#22D3EE] flex items-center justify-center text-white font-black text-sm uppercase flex-shrink-0 shadow-[0_4px_10px_rgba(139,92,246,0.15)] overflow-hidden">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-dash-primary to-[#FF8A1F] flex items-center justify-center text-white font-black text-sm uppercase flex-shrink-0 shadow-[0_4px_10px_rgba(255,107,0,0.15)] overflow-hidden">
             {userAvatarUrl ? (
               <img src={userAvatarUrl} alt={userFullName} className="w-full h-full object-cover" />
             ) : (

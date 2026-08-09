@@ -61,7 +61,7 @@ export default function Contact() {
   return (
     <section id="contact" className="relative py-24 bg-dash-sidebar border-t border-dash-border overflow-hidden">
       {/* Background glow orb */}
-      <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/4 rounded-full blur-[130px] pointer-events-none"></div>
+      <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-[#FF6B00]/4 rounded-full blur-[130px] pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto px-6 relative z-10 text-left">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -218,7 +218,7 @@ export default function Contact() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3.5 shadow-md shadow-violet-500/10 hover:shadow-lg transition-all cursor-pointer mt-2"
+                      className="glow-btn bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3.5 shadow-md shadow-orange-500/10 hover:shadow-lg transition-all cursor-pointer mt-2"
                     >
                       {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

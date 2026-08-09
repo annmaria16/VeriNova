@@ -1,39 +1,45 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Sparkles, Database, FileSearch, Scale, CheckCircle2 } from "lucide-react";
+import { User, Cpu, Search, Scale, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function Workflow() {
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
     {
-      title: "User Request",
-      desc: "User initiates an automated task or query in the application ecosystem.",
+      title: "1. You Ask",
+      desc: "Natural language request",
       icon: User,
     },
     {
-      title: "AI Execution",
-      desc: "The generative AI model processes the request and proposes an outcome.",
-      icon: Sparkles,
+      title: "2. AI Understands",
+      desc: "Intent & parameters",
+      icon: Cpu,
     },
     {
-      title: "Evidence Collection",
-      desc: "System intercepts outputs and gathers downstream logs, DB logs, and API receipts.",
-      icon: Database,
+      title: "3. AI Searches",
+      desc: "Available services/data",
+      icon: Search,
     },
     {
-      title: "Verification Engine",
-      desc: "VeriNova checks evidence against deterministic schemas and semantic rules.",
-      icon: FileSearch,
-    },
-    {
-      title: "Confidence Score",
-      desc: "Calculates overall certainty percentage based on evidentiary criteria.",
+      title: "4. AI Compares",
+      desc: "Price, rating, availability",
       icon: Scale,
     },
     {
-      title: "Verified Result",
-      desc: "The certified outcome is released to production, or flagged for inspection.",
+      title: "5. AI Executes",
+      desc: "Books, buys or performs the task",
+      icon: Sparkles,
+    },
+    {
+      title: "6. VeriNova Verifies",
+      desc: "Independent evidence check",
+      icon: ShieldCheck,
+      isCore: true,
+    },
+    {
+      title: "7. You Get Result",
+      desc: "Verified outcome",
       icon: CheckCircle2,
     },
   ];
@@ -44,7 +50,7 @@ export default function Workflow() {
       setActiveStep((prev) => (prev + 1) % steps.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [steps.length]);
 
   return (
     <section id="how-it-works" className="relative py-24 bg-dash-sidebar border-t border-dash-border overflow-hidden">
@@ -59,7 +65,7 @@ export default function Workflow() {
             Operational Flow
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
-            How VeriNova Works
+            How VeriNova AI Works
           </h2>
           <p className="text-dash-secondary mt-4 text-base leading-relaxed font-semibold">
             A pipeline designed to intercept, investigate, and validate outputs before committing decisions. Click steps to inspect.
@@ -81,14 +87,15 @@ export default function Workflow() {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="hidden lg:block absolute top-1/2 -translate-y-1/2 w-8 h-[2px] bg-gradient-to-r from-transparent via-[#8B5CF6] to-transparent shadow-[0_0_10px_#8B5CF6]"
+              className="hidden lg:block absolute top-1/2 -translate-y-1/2 w-8 h-[2px] bg-gradient-to-r from-transparent via-[#FF6B00] to-transparent shadow-[0_0_10px_#FF6B00]"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 w-full">
             {steps.map((step, idx) => {
               const Icon = step.icon;
               const isActive = activeStep === idx;
+              const isCore = step.isCore;
               return (
                 <div
                   key={step.title}
@@ -102,7 +109,7 @@ export default function Workflow() {
                       {isActive && (
                         <motion.div
                           layoutId="activeGlow"
-                          className="absolute -inset-2.5 rounded-full border-2 border-[#8B5CF6] bg-[#8B5CF6]/5 shadow-[0_0_20px_rgba(139,92,246,0.3)] pointer-events-none"
+                          className="absolute -inset-2.5 rounded-full border-2 border-[#FF6B00] bg-[#FF6B00]/5 shadow-[0_0_20px_rgba(255,107,0,0.3)] pointer-events-none"
                           transition={{ type: "spring", stiffness: 100, damping: 15 }}
                         />
                       )}
@@ -112,7 +119,9 @@ export default function Workflow() {
                     <div
                       className={`w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center border transition-all duration-300 ${
                         isActive
-                          ? "bg-[#8B5CF6] border-[#8B5CF6] text-white shadow-[0_8px_25px_rgba(139,92,246,0.35)]"
+                          ? "bg-[#FF6B00] border-[#FF6B00] text-white shadow-[0_8px_25px_rgba(255,107,0,0.35)]"
+                          : isCore
+                          ? "bg-[#FFF3E8] border-[#FF6B00] text-[#FF6B00] shadow-[0_0_15px_rgba(255,107,0,0.3)]"
                           : "bg-dash-bg border-dash-border text-dash-primary hover:border-dash-primary/70"
                       }`}
                     >
@@ -123,7 +132,9 @@ export default function Workflow() {
                     <div
                       className={`absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center border transition-all duration-300 ${
                         activeStep === idx
-                          ? "bg-dash-card border-[#8B5CF6] text-[#8B5CF6]"
+                          ? "bg-dash-card border-[#FF6B00] text-[#FF6B00]"
+                          : isCore
+                          ? "bg-[#FFF3E8] border-[#FF6B00] text-[#FF6B00]"
                           : "bg-dash-bg border-dash-border text-dash-secondary group-hover:border-dash-primary/30"
                       }`}
                     >
@@ -140,20 +151,20 @@ export default function Workflow() {
                     className="flex flex-col items-center"
                   >
                     <h3
-                      className={`text-base sm:text-lg font-black transition-colors ${
-                        isActive ? "text-dash-primary" : "text-dash-text group-hover:text-[#8B5CF6]"
+                      className={`text-sm font-black transition-colors leading-tight ${
+                        isActive ? "text-dash-primary" : "text-dash-text group-hover:text-[#FF6B00]"
                       }`}
                     >
                       {step.title}
                     </h3>
-                    <p className="text-dash-secondary text-xs mt-2 max-w-[200px] leading-relaxed font-semibold">
+                    <p className="text-dash-secondary text-[11px] mt-2 max-w-[150px] leading-relaxed font-semibold">
                       {step.desc}
                     </p>
                   </motion.div>
 
                   {/* Flow Arrow for mobile view */}
                   {idx < steps.length - 1 && (
-                    <div className="lg:hidden mt-8 text-dash-border flex flex-col items-center animate-pulse">
+                    <div className="lg:hidden mt-6 text-dash-border flex flex-col items-center animate-pulse">
                       <span>↓</span>
                     </div>
                   )}

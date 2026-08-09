@@ -40,7 +40,7 @@ export default function FAQ() {
   return (
     <section id="faq" className="relative py-24 bg-dash-sidebar border-t border-dash-border overflow-hidden">
       {/* Background glow */}
-      <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-[#22D3EE]/4 rounded-full blur-[110px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-[#FF8A1F]/4 rounded-full blur-[110px] pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto px-6 relative z-10 text-left">
         

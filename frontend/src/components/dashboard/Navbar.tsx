@@ -296,7 +296,7 @@ export default function Navbar({
             }}
             className="flex items-center gap-3 p-1 rounded-xl cursor-pointer transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dash-primary to-[#22D3EE] flex items-center justify-center text-white font-black text-xs uppercase shadow-md flex-shrink-0 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dash-primary to-[#FF8A1F] flex items-center justify-center text-white font-black text-xs uppercase shadow-md flex-shrink-0 overflow-hidden">
               {userAvatarUrl ? (
                 <img src={userAvatarUrl} alt={userFullName} className="w-full h-full object-cover" />
               ) : (
