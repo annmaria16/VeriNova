@@ -67,7 +67,7 @@ export default function Sidebar({
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { id: "my-tasks", label: "Tasks", icon: <CheckSquare className="w-5 h-5" /> },
-    { id: "new-verification", label: "AI Verification", icon: <PlayCircle className="w-5 h-5" /> },
+    { id: "new-verification", label: "AI Assistant", icon: <PlayCircle className="w-5 h-5" /> },
     { id: "reports", label: "Reports", icon: <FileText className="w-5 h-5" /> },
     { id: "analytics", label: "Analytics", icon: <TrendingUp className="w-5 h-5" /> },
     {
@@ -89,11 +89,11 @@ export default function Sidebar({
   }
 
   const sidebarContent = (
-    <div className="h-full flex flex-col justify-between bg-dash-sidebar border-r border-dash-border relative">
+    <div className="h-full flex flex-col justify-between bg-dash-sidebar lg:bg-dash-sidebar/90 backdrop-blur-md border-r border-dash-border relative text-left">
       {/* Collapse Button (desktop only) */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="hidden lg:flex absolute top-7 -right-3.5 z-50 bg-[#0B1120] border border-dash-border hover:border-dash-primary text-dash-secondary hover:text-dash-primary w-7 h-7 rounded-full items-center justify-center transition-all duration-300 shadow-[0_0_12px_rgba(16,185,129,0.2)] cursor-pointer"
+        className="hidden lg:flex absolute top-7 -right-3.5 z-50 bg-dash-sidebar border border-dash-border hover:border-dash-primary text-dash-secondary hover:text-dash-primary w-7 h-7 rounded-full items-center justify-center transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.05)] cursor-pointer"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -101,8 +101,7 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className={`p-6 border-b border-dash-border flex items-center justify-between transition-all duration-300 ${isCollapsed ? "justify-center px-4" : ""}`}>
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveModule("dashboard")}>
-          {/* Exact Logo from Landing Page Navbar */}
-          <div className="bg-gradient-to-br from-[#10B981] to-[#14532D] p-2 rounded-xl shadow-lg shadow-[#10B981]/20 flex-shrink-0">
+          <div className="bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] p-2 rounded-xl shadow-lg shadow-violet-500/10 flex-shrink-0">
             <ShieldCheck className="text-white" size={24} />
           </div>
           {!isCollapsed && (
@@ -112,17 +111,17 @@ export default function Sidebar({
               exit={{ opacity: 0 }}
               className="text-left"
             >
-              <h1 className="text-xl font-black text-white tracking-wide leading-none">
-                VeriNova
+              <h1 className="text-lg font-black text-dash-text tracking-wide leading-none group-hover:text-dash-primary transition-colors">
+                VeriNova AI
               </h1>
-              <span className="text-[9px] font-bold text-dash-secondary tracking-wider block mt-1.5 uppercase">
-                OUTCOME VERIFICATION
+              <span className="text-[9px] font-black text-dash-secondary tracking-wider block mt-1.5 uppercase">
+                PERSONAL ASSISTANT
               </span>
             </motion.div>
           )}
         </div>
         <button
-          className="lg:hidden text-dash-secondary hover:text-white cursor-pointer"
+          className="lg:hidden text-dash-secondary hover:text-dash-text cursor-pointer"
           onClick={() => setSidebarOpen(false)}
         >
           <X className="w-5 h-5" />
@@ -140,18 +139,18 @@ export default function Sidebar({
                 setActiveModule(item.id);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group cursor-pointer relative ${isActive
-                  ? "bg-dash-primary/10 text-white border border-dash-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                  : "text-dash-secondary hover:text-white hover:bg-dash-card/40 border border-transparent"
+              className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 group cursor-pointer relative ${isActive
+                  ? "bg-dash-primary/10 text-dash-primary border border-dash-primary/20 shadow-[0_4px_12px_rgba(139,92,246,0.03)]"
+                  : "text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 border border-transparent"
                 } ${isCollapsed ? "justify-center px-2" : ""}`}
               title={isCollapsed ? item.label : undefined}
             >
               {/* Left active status indicator line */}
               {isActive && (
-                <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-dash-primary rounded-r-md shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-dash-primary rounded-r-md shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
               )}
 
-              <div className={`transition-transform duration-200 group-hover:scale-105 ${isActive ? "text-dash-primary" : "text-dash-secondary group-hover:text-dash-primary"}`}>
+              <div className={`transition-transform duration-200 group-hover:scale-105 ${isActive ? "text-dash-primary filter drop-shadow-[0_0_5px_rgba(139,92,246,0.5)]" : "text-dash-secondary group-hover:text-dash-primary"}`}>
                 {item.icon}
               </div>
 
@@ -159,14 +158,14 @@ export default function Sidebar({
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex-1 text-left"
+                  className="flex-1 text-left group-hover:translate-x-0.5 transition-transform duration-200"
                 >
                   {item.label}
                 </motion.span>
               )}
 
               {item.badge !== undefined && (
-                <span className={`flex items-center justify-center font-bold rounded-full ${isCollapsed ? "absolute -top-1.5 -right-1 text-[8px] w-4.5 h-4.5 bg-dash-primary text-dash-bg shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "text-[9px] px-2 py-0.5 bg-dash-primary/15 text-dash-primary"
+                <span className={`flex items-center justify-center font-black rounded-full ${isCollapsed ? "absolute -top-1.5 -right-1 text-[8px] w-4.5 h-4.5 bg-dash-primary text-white shadow-[0_2px_8px_rgba(139,92,246,0.3)]" : "text-[9px] px-2 py-0.5 bg-dash-primary/15 text-dash-primary"
                   }`}>
                   {item.badge}
                 </span>
@@ -177,7 +176,7 @@ export default function Sidebar({
       </nav>
 
       {/* Sidebar Footer User Account */}
-      <div className="p-4 border-t border-dash-border bg-dash-sidebar/40 relative" ref={sidebarUserRef}>
+      <div className="p-4 border-t border-dash-border bg-dash-sidebar/20 relative" ref={sidebarUserRef}>
         <button
           ref={userTriggerRef}
           onClick={(e) => {
@@ -189,7 +188,7 @@ export default function Sidebar({
           aria-haspopup="menu"
           aria-expanded={openDropdown === "sidebar-user"}
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-dash-primary to-dash-hover flex items-center justify-center text-dash-bg font-black text-sm uppercase flex-shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.15)] overflow-hidden">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-dash-primary to-[#22D3EE] flex items-center justify-center text-white font-black text-sm uppercase flex-shrink-0 shadow-[0_4px_10px_rgba(139,92,246,0.15)] overflow-hidden">
             {userAvatarUrl ? (
               <img src={userAvatarUrl} alt={userFullName} className="w-full h-full object-cover" />
             ) : (
@@ -202,8 +201,8 @@ export default function Sidebar({
               animate={{ opacity: 1 }}
               className="min-w-0 flex-1 text-left"
             >
-              <p className="text-xs font-black text-white truncate">{userFullName}</p>
-              <span className="text-[9px] text-dash-secondary block truncate uppercase tracking-wider font-bold">User</span>
+              <p className="text-xs font-black text-dash-text truncate">{userFullName}</p>
+              <span className="text-[9px] text-dash-secondary block truncate uppercase tracking-wider font-black">User</span>
             </motion.div>
           )}
           {!isCollapsed && (
@@ -227,7 +226,7 @@ export default function Sidebar({
                     setActiveModule("profile");
                     setOpenDropdown(null);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-white hover:bg-dash-card/45 rounded-lg cursor-pointer transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-lg cursor-pointer transition-colors text-left"
                 >
                   <User className="w-4 h-4 text-dash-secondary" />
                   <span>My Profile</span>
@@ -237,7 +236,7 @@ export default function Sidebar({
                     setActiveModule("settings");
                     setOpenDropdown(null);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-white hover:bg-dash-card/45 rounded-lg cursor-pointer transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-lg cursor-pointer transition-colors text-left"
                 >
                   <Settings className="w-4 h-4 text-dash-secondary" />
                   <span>Settings</span>
@@ -248,9 +247,9 @@ export default function Sidebar({
                     setOpenDropdown(null);
                     handleLogout();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg cursor-pointer transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-black text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer transition-colors text-left"
                 >
-                  <LogOut className="w-4 h-4 text-red-400" />
+                  <LogOut className="w-4 h-4 text-red-500" />
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -271,7 +270,7 @@ export default function Sidebar({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           />
         )}
       </AnimatePresence>

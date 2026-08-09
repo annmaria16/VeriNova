@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Loader2, AlertTriangle } from "lucide-react";
 import api from "../../services/api";
+import { useTheme } from "../../hooks/useTheme";
 
 export function VerificationActivityChart() {
   const [filter, setFilter] = useState<"today" | "last_7_days" | "last_30_days" | "this_month">("last_7_days");
   const [chartData, setChartData] = useState<{ labels: string[]; values: number[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   const fetchActivityData = async () => {
     setLoading(true);
@@ -35,10 +37,10 @@ export function VerificationActivityChart() {
 
   if (loading) {
     return (
-      <div className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-lg shadow-black/10 animate-pulse">
-        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border/40">
-          <div className="h-4 bg-[#08120F]/45 rounded w-1/3"></div>
-          <div className="h-6 bg-[#08120F]/45 rounded w-16"></div>
+      <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm animate-pulse">
+        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border">
+          <div className="h-4 bg-dash-bg rounded w-1/3"></div>
+          <div className="h-6 bg-dash-bg rounded w-16"></div>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-dash-primary animate-spin" />
@@ -51,14 +53,14 @@ export function VerificationActivityChart() {
 
   if (!hasData) {
     return (
-      <div className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-lg shadow-black/10">
-        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border/40">
-          <h3 className="text-sm font-black text-white tracking-tight">Verification Activity</h3>
+      <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
+        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border">
+          <h3 className="text-sm font-black text-dash-text tracking-tight">Verification Activity</h3>
           <div className="relative">
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="appearance-none pr-8 pl-3 py-1 bg-dash-sidebar border border-dash-border/80 rounded-lg text-[10px] font-black text-dash-secondary hover:text-white transition-colors cursor-pointer uppercase tracking-wider outline-none focus:border-dash-primary"
+              className="appearance-none pr-8 pl-3 py-1 bg-dash-bg border border-dash-border rounded-lg text-[10px] font-black text-dash-secondary hover:text-dash-primary transition-colors cursor-pointer uppercase tracking-wider outline-none focus:border-dash-primary"
             >
               <option value="today">Today</option>
               <option value="last_7_days">Last 7 Days</option>
@@ -70,7 +72,7 @@ export function VerificationActivityChart() {
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-2">
           <AlertTriangle className="w-8 h-8 text-dash-secondary/60" />
-          <span className="text-xs text-dash-secondary font-semibold">No verification activity available.</span>
+          <span className="text-xs text-dash-secondary font-bold">No verification activity available.</span>
         </div>
       </div>
     );
@@ -108,14 +110,14 @@ export function VerificationActivityChart() {
     : [labels[0], labels[Math.floor(N / 2)], labels[N - 1]];
 
   return (
-    <div className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-lg shadow-black/10">
-      <div className="flex items-center justify-between pb-3.5 border-b border-dash-border/40">
-        <h3 className="text-sm font-black text-white tracking-tight">Verification Activity</h3>
+    <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
+      <div className="flex items-center justify-between pb-3.5 border-b border-dash-border">
+        <h3 className="text-sm font-black text-dash-text tracking-tight">Verification Activity</h3>
         <div className="relative">
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
-            className="appearance-none pr-8 pl-3 py-1 bg-dash-sidebar border border-dash-border/80 rounded-lg text-[10px] font-black text-dash-secondary hover:text-white transition-colors cursor-pointer uppercase tracking-wider outline-none focus:border-dash-primary"
+            className="appearance-none pr-8 pl-3 py-1 bg-dash-bg border border-dash-border rounded-lg text-[10px] font-black text-dash-secondary hover:text-dash-primary transition-colors cursor-pointer uppercase tracking-wider outline-none focus:border-dash-primary"
           >
             <option value="today">Today</option>
             <option value="last_7_days">Last 7 Days</option>
@@ -128,7 +130,7 @@ export function VerificationActivityChart() {
 
       <div className="flex-1 flex gap-4 pt-5 select-none relative">
         {/* Y Axis labels */}
-        <div className="flex flex-col justify-between text-[9px] font-bold text-dash-secondary/85 w-6 pb-6">
+        <div className="flex flex-col justify-between text-[9px] font-black text-dash-secondary w-6 pb-6">
           {yLabels.map((lbl, idx) => (
             <span key={idx} className="text-right">{lbl}</span>
           ))}
@@ -139,15 +141,15 @@ export function VerificationActivityChart() {
           <div className="absolute inset-x-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
             {/* Grid lines */}
             {[...Array(5)].map((_, idx) => (
-              <div key={idx} className="border-b border-dash-border/45 w-full h-0" />
+              <div key={idx} className="border-b border-dash-border/60 w-full h-0" />
             ))}
           </div>
 
           <svg className="w-full h-full overflow-visible z-10" viewBox="0 0 380 110" preserveAspectRatio="none">
             <defs>
               <linearGradient id="glowCurve" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
               </linearGradient>
             </defs>
 
@@ -158,7 +160,7 @@ export function VerificationActivityChart() {
             <motion.polyline
               points={pointsStr}
               fill="none"
-              stroke="#10B981"
+              stroke="#8B5CF6"
               strokeWidth="2.5"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
@@ -176,8 +178,8 @@ export function VerificationActivityChart() {
                   cx={x}
                   cy={y}
                   r={isMajor ? 4.5 : 3.5}
-                  fill={isMajor ? "#34D399" : "#10B981"}
-                  stroke={isMajor ? "#0B1120" : "none"}
+                  fill={isMajor ? "#22D3EE" : "#8B5CF6"}
+                  stroke={isMajor ? (theme === "dark" ? "#0A0D18" : "#FFFFFF") : "none"}
                   strokeWidth={isMajor ? 1.5 : 0}
                 />
               );
@@ -185,7 +187,7 @@ export function VerificationActivityChart() {
           </svg>
 
           {/* X Axis labels */}
-          <div className="absolute bottom-0 inset-x-0 flex justify-between text-[9px] font-bold text-dash-secondary/85 px-1">
+          <div className="absolute bottom-0 inset-x-0 flex justify-between text-[9px] font-black text-dash-secondary px-1">
             {showLabels.map((lbl, idx) => (
               <span key={idx} className="text-center min-w-[30px]">{lbl}</span>
             ))}
@@ -205,15 +207,17 @@ interface TaskStatusDonutProps {
 }
 
 export function TaskStatusDonut({ total, verified, pending, running, failed }: TaskStatusDonutProps) {
+  const { theme } = useTheme();
+
   if (total === 0) {
     return (
-      <div className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-lg shadow-black/10">
-        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border/40 mb-3">
-          <h3 className="text-sm font-black text-white tracking-tight">Task Status</h3>
+      <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
+        <div className="flex items-center justify-between pb-3.5 border-b border-dash-border mb-3">
+          <h3 className="text-sm font-black text-dash-text tracking-tight">Task Status</h3>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-2">
           <AlertTriangle className="w-8 h-8 text-dash-secondary/60" />
-          <span className="text-xs text-dash-secondary font-semibold">No verification data available.</span>
+          <span className="text-xs text-dash-secondary font-bold">No verification data available.</span>
         </div>
       </div>
     );
@@ -233,10 +237,12 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
   const rOffset = circ - (circ * runningPercent) / 100;
   const fOffset = circ - (circ * failedPercent) / 100;
 
+  const baseStroke = theme === "dark" ? "rgba(255, 255, 255, 0.04)" : "#E2E8F0";
+
   return (
-    <div className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-lg shadow-black/10">
-      <div className="flex items-center justify-between pb-3.5 border-b border-dash-border/40 mb-3">
-        <h3 className="text-sm font-black text-white tracking-tight">Task Status</h3>
+    <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
+      <div className="flex items-center justify-between pb-3.5 border-b border-dash-border mb-3">
+        <h3 className="text-sm font-black text-dash-text tracking-tight">Task Status</h3>
       </div>
 
       <div className="flex-1 flex items-center justify-between gap-6 px-1">
@@ -244,7 +250,7 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
         <div className="relative w-28 h-28 flex-shrink-0">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             {/* Background base circle */}
-            <circle cx="50" cy="50" r="42" fill="transparent" stroke="#1F2937" strokeWidth="8" />
+            <circle cx="50" cy="50" r="42" fill="transparent" stroke={baseStroke} strokeWidth="8" />
 
             {/* Verified segment (green) */}
             <motion.circle
@@ -252,7 +258,7 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
               cy="50"
               r="42"
               fill="transparent"
-              stroke="#10B981"
+              stroke="#22C55E"
               strokeWidth="9.5"
               strokeDasharray={circ}
               initial={{ strokeDashoffset: circ }}
@@ -277,13 +283,13 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
               style={{ transform: `rotate(${(verifiedPercent / 100) * 360}deg)` }}
             />
 
-            {/* Running segment (blue) */}
+            {/* Running segment (cyan) */}
             <motion.circle
               cx="50"
               cy="50"
               r="42"
               fill="transparent"
-              stroke="#3B82F6"
+              stroke="#22D3EE"
               strokeWidth="9"
               strokeDasharray={circ}
               initial={{ strokeDashoffset: circ }}
@@ -312,10 +318,10 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
 
           {/* Inner Total numbers */}
           <div className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none">
-            <span className="text-[14px] font-black text-white leading-none">
+            <span className="text-[14px] font-black text-dash-text leading-none">
               {total.toLocaleString()}
             </span>
-            <span className="text-[9px] text-dash-secondary font-bold uppercase tracking-wider mt-1">
+            <span className="text-[9px] text-dash-secondary font-black uppercase tracking-wider mt-1">
               Total
             </span>
           </div>
@@ -325,10 +331,10 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
         <div className="flex-1 space-y-2.5 text-xs font-bold pl-2 select-none">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 bg-[#10B981] rounded-full" />
+              <div className="w-2.5 h-2.5 bg-[#22C55E] rounded-full" />
               <span className="text-dash-secondary">Verified</span>
             </div>
-            <span className="text-white font-mono">{verifiedPercent}% ({verified})</span>
+            <span className="text-dash-text font-mono">{verifiedPercent}% ({verified})</span>
           </div>
 
           <div className="flex items-center justify-between gap-2">
@@ -336,15 +342,15 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
               <div className="w-2.5 h-2.5 bg-[#F59E0B] rounded-full" />
               <span className="text-dash-secondary">Pending</span>
             </div>
-            <span className="text-white font-mono">{pendingPercent}% ({pending})</span>
+            <span className="text-dash-text font-mono">{pendingPercent}% ({pending})</span>
           </div>
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 bg-[#3B82F6] rounded-full" />
+              <div className="w-2.5 h-2.5 bg-[#22D3EE] rounded-full" />
               <span className="text-dash-secondary">Running</span>
             </div>
-            <span className="text-white font-mono">{runningPercent}% ({running})</span>
+            <span className="text-dash-text font-mono">{runningPercent}% ({running})</span>
           </div>
 
           <div className="flex items-center justify-between gap-2">
@@ -352,7 +358,7 @@ export function TaskStatusDonut({ total, verified, pending, running, failed }: T
               <div className="w-2.5 h-2.5 bg-[#EF4444] rounded-full" />
               <span className="text-dash-secondary">Failed</span>
             </div>
-            <span className="text-white font-mono">{failedPercent}% ({failed})</span>
+            <span className="text-dash-text font-mono">{failedPercent}% ({failed})</span>
           </div>
         </div>
       </div>

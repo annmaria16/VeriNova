@@ -36,22 +36,22 @@ export default function Features() {
   ];
 
   return (
-    <section id="features" className="relative py-24 bg-[#08120F] overflow-hidden">
+    <section id="features" className="relative py-24 bg-dash-bg overflow-hidden">
       {/* Decorative Orbs */}
-      <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-[#22C55E]/2 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#4ADE80]/3 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-0 w-[300px] h-[300px] bg-[#8B5CF6]/4 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#22D3EE]/4 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-[#22C55E] text-xs font-bold uppercase tracking-[0.2em]">
+          <span className="text-dash-primary text-xs font-bold uppercase tracking-[0.2em]">
             Core Features
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-3 leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
             Why Choose VeriNova
           </h2>
-          <p className="text-gray-400 mt-4 text-base leading-relaxed">
+          <p className="text-dash-secondary mt-4 text-base leading-relaxed font-semibold">
             Ensure reliability and compliance in automated workflows. We provide a rigorous evidence-backed safety layer for mission-critical AI operations.
           </p>
         </div>

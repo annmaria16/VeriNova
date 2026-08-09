@@ -59,11 +59,11 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="relative py-24 bg-[#08120F] border-t border-[#14532D]/20 overflow-hidden">
+    <section id="contact" className="relative py-24 bg-dash-sidebar border-t border-dash-border overflow-hidden">
       {/* Background glow orb */}
-      <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-[#4ADE80]/3 rounded-full blur-[130px] pointer-events-none"></div>
+      <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/4 rounded-full blur-[130px] pointer-events-none"></div>
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
+      <div className="max-w-6xl mx-auto px-6 relative z-10 text-left">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           
           {/* Left Column: text details */}
@@ -73,36 +73,36 @@ export default function Contact() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[#22C55E] text-xs font-bold uppercase tracking-[0.2em]">
+            <span className="text-dash-primary text-xs font-bold uppercase tracking-[0.2em]">
               Start Verifying Today
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-3 leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
               Secure Your AI Deployments
             </h2>
-            <p className="text-gray-400 mt-5 text-base leading-relaxed">
+            <p className="text-dash-secondary mt-5 text-base leading-relaxed font-semibold">
               Have questions about integrating VeriNova into your existing LangChain, Autogen, or custom AI agents? Get in touch to discuss compliance requirements, API keys, or enterprise VPC deployments.
             </p>
 
             <div className="mt-8 flex flex-col gap-5">
-              <div className="flex items-center gap-4 text-gray-300">
-                <div className="w-10 h-10 rounded-xl bg-[#10211C] border border-[#14532D]/60 flex items-center justify-center text-[#22C55E]">
+              <div className="flex items-center gap-4 text-dash-text">
+                <div className="w-10 h-10 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center text-dash-primary shadow-sm">
                   <Mail size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-bold uppercase">Email support</p>
-                  <p className="text-sm font-semibold hover:text-[#22C55E] transition-colors cursor-pointer">
+                  <p className="text-xs text-dash-secondary font-bold uppercase">Email support</p>
+                  <p className="text-sm font-black hover:text-dash-primary transition-colors cursor-pointer">
                     enterprise@verinova.ai
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-gray-300">
-                <div className="w-10 h-10 rounded-xl bg-[#10211C] border border-[#14532D]/60 flex items-center justify-center text-[#22C55E]">
+              <div className="flex items-center gap-4 text-dash-text">
+                <div className="w-10 h-10 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center text-dash-primary shadow-sm">
                   <MessageSquare size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-bold uppercase">Direct Support</p>
-                  <p className="text-sm font-semibold">24/7 Slack & Teams verification channels</p>
+                  <p className="text-xs text-dash-secondary font-bold uppercase">Direct Support</p>
+                  <p className="text-sm font-black">24/7 Slack & Teams verification channels</p>
                 </div>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function Contact() {
             transition={{ duration: 0.6 }}
             className="w-full flex justify-center"
           >
-            <div className="w-full max-w-[500px] glass-panel border border-[#14532D]/50 rounded-2xl p-8 relative overflow-hidden">
+            <div className="w-full max-w-[500px] bg-dash-card/50 backdrop-blur-md border border-dash-border rounded-2xl p-8 relative overflow-hidden shadow-xl">
               <AnimatePresence mode="wait">
                 {!isSuccess ? (
                   <motion.form
@@ -127,11 +127,11 @@ export default function Contact() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <h3 className="text-xl font-bold text-white mb-2">Request Integration Keys</h3>
+                    <h3 className="text-xl font-black text-dash-text mb-2">Request Integration Keys</h3>
 
                     {/* Name field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="name" className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <label htmlFor="name" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
                         Full Name
                       </label>
                       <input
@@ -141,12 +141,12 @@ export default function Contact() {
                         value={formData.name}
                         onChange={handleInputChange}
                         placeholder=""
-                        className={`w-full bg-[#08120F]/90 border rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all ${
-                          errors.name ? "border-red-500" : "border-[#14532D]/60"
+                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
+                          errors.name ? "border-red-500" : "border-dash-border"
                         }`}
                       />
                       {errors.name && (
-                        <span className="text-red-400 text-xs flex items-center gap-1.5 mt-1">
+                        <span className="text-red-500 text-xs flex items-center gap-1.5 mt-1 font-semibold">
                           <AlertTriangle size={12} /> {errors.name}
                         </span>
                       )}
@@ -154,7 +154,7 @@ export default function Contact() {
 
                     {/* Email field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="email" className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <label htmlFor="email" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
                         Work Email
                       </label>
                       <input
@@ -164,12 +164,12 @@ export default function Contact() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder=""
-                        className={`w-full bg-[#08120F]/90 border rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all ${
-                          errors.email ? "border-red-500" : "border-[#14532D]/60"
+                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
+                          errors.email ? "border-red-500" : "border-dash-border"
                         }`}
                       />
                       {errors.email && (
-                        <span className="text-red-400 text-xs flex items-center gap-1.5 mt-1">
+                        <span className="text-red-500 text-xs flex items-center gap-1.5 mt-1 font-semibold">
                           <AlertTriangle size={12} /> {errors.email}
                         </span>
                       )}
@@ -177,7 +177,7 @@ export default function Contact() {
 
                     {/* Company field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="company" className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <label htmlFor="company" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
                         Company / Org (Optional)
                       </label>
                       <input
@@ -187,13 +187,13 @@ export default function Contact() {
                         value={formData.company}
                         onChange={handleInputChange}
                         placeholder=""
-                        className="w-full bg-[#08120F]/90 border border-[#14532D]/60 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all"
+                        className="w-full bg-dash-bg border border-dash-border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold"
                       />
                     </div>
 
                     {/* Message field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="message" className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <label htmlFor="message" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
                         Message
                       </label>
                       <textarea
@@ -203,12 +203,12 @@ export default function Contact() {
                         onChange={handleInputChange}
                         rows={4}
                         placeholder=""
-                        className={`w-full bg-[#08120F]/90 border rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#22C55E] focus:ring-1 focus:ring-[#22C55E] transition-all resize-none ${
-                          errors.message ? "border-red-500" : "border-[#14532D]/60"
+                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all resize-none font-semibold ${
+                          errors.message ? "border-red-500" : "border-dash-border"
                         }`}
                       />
                       {errors.message && (
-                        <span className="text-red-400 text-xs flex items-center gap-1.5 mt-1">
+                        <span className="text-red-500 text-xs flex items-center gap-1.5 mt-1 font-semibold">
                           <AlertTriangle size={12} /> {errors.message}
                         </span>
                       )}
@@ -218,10 +218,10 @@ export default function Contact() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="glow-btn bg-[#22C55E] hover:bg-[#4ADE80] disabled:bg-[#14532D] text-[#08120F] disabled:text-gray-400 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3.5 shadow-lg shadow-green-500/20 disabled:shadow-none transition-all cursor-pointer mt-2"
+                      className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3.5 shadow-md shadow-violet-500/10 hover:shadow-lg transition-all cursor-pointer mt-2"
                     >
                       {isSubmitting ? (
-                        <div className="w-5 h-5 border-2 border-[#08120F] border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <>
                           <span>Submit Request</span>
@@ -239,16 +239,16 @@ export default function Contact() {
                     exit={{ opacity: 0 }}
                     transition={{ type: "spring", stiffness: 120, damping: 14 }}
                   >
-                    <div className="w-16 h-16 rounded-full bg-[#22C55E]/10 border border-[#22C55E]/40 flex items-center justify-center text-[#22C55E] mb-6 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+                    <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500 mb-6 shadow-[0_4px_12px_rgba(34,197,94,0.15)]">
                       <CheckCircle size={36} className="animate-bounce" />
                     </div>
-                    <h3 className="text-2xl font-black text-white">Request Received</h3>
-                    <p className="text-gray-400 text-sm mt-3 max-w-sm leading-relaxed">
+                    <h3 className="text-2xl font-black text-dash-text">Request Received</h3>
+                    <p className="text-dash-secondary text-sm mt-3 max-w-sm leading-relaxed font-semibold">
                       Thank you! Our engineering team will review your requirements and reach out within 2 hours with integration sandbox access instructions.
                     </p>
                     <button
                       onClick={() => setIsSuccess(false)}
-                      className="mt-8 text-xs font-bold uppercase tracking-wider text-[#22C55E] border border-[#14532D] px-6 py-2.5 rounded-xl hover:bg-[#10211C] transition-colors"
+                      className="mt-8 text-xs font-black uppercase tracking-wider text-dash-primary border border-dash-border px-6 py-2.5 rounded-xl hover:bg-dash-primary/5 transition-colors cursor-pointer"
                     >
                       Send Another Message
                     </button>

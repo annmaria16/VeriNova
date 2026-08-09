@@ -20,25 +20,25 @@ export default function DashboardCard({
   accentColor,
 }: DashboardCardProps) {
   const bgClasses = {
-    green: "bg-dash-card border-dash-primary/20 shadow-[0_0_12px_rgba(16,185,129,0.02)]",
-    emerald: "bg-dash-card border-[#10B981]/20 shadow-[0_0_12px_rgba(16,185,129,0.02)]",
-    yellow: "bg-dash-card border-yellow-500/20 shadow-[0_0_12px_rgba(234,179,8,0.02)]",
-    red: "bg-dash-card border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.02)]",
-    blue: "bg-dash-card border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.02)]",
+    green: "bg-dash-card border-dash-border shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-dash-primary/30",
+    emerald: "bg-dash-card border-dash-border shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-[#10B981]/30",
+    yellow: "bg-dash-card border-dash-border shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-yellow-500/30",
+    red: "bg-dash-card border-dash-border shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-red-500/30",
+    blue: "bg-dash-card border-dash-border shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:border-blue-500/30",
   };
 
   const textTrendClasses = {
     up: "text-dash-primary",
-    down: "text-red-400",
-    neutral: "text-yellow-400",
+    down: "text-red-500",
+    neutral: "text-amber-500",
   };
 
   const iconClasses = {
     green: "bg-dash-primary/10 text-dash-primary border border-dash-primary/20",
     emerald: "bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20",
-    yellow: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
-    red: "bg-red-500/10 text-red-400 border border-red-500/20",
-    blue: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+    yellow: "bg-yellow-500/10 text-amber-500 border border-yellow-500/20",
+    red: "bg-red-500/10 text-red-500 border border-red-500/20",
+    blue: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
   };
 
   return (
@@ -56,7 +56,7 @@ export default function DashboardCard({
             <span className="text-[10px] font-bold text-dash-secondary uppercase tracking-wider block truncate">
               {title}
             </span>
-            <h3 className="text-xl sm:text-2xl font-black text-white leading-none tracking-tight mt-1 truncate">
+            <h3 className="text-xl sm:text-2xl font-black text-dash-text leading-none tracking-tight mt-1 truncate">
               {value}
             </h3>
           </div>

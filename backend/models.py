@@ -118,6 +118,7 @@ class Task(Base):
     task_type = Column(String(50), nullable=True)  # payment, email, flight, hotel, movie, crm
     priority = Column(String(20), nullable=True, default="medium")  # low, medium, high
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+    reference_id = Column(String(100), nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="tasks")
@@ -235,3 +236,56 @@ class Customer(Base):
     phone = Column(String(50), nullable=True)
     status = Column(String(50), default="active")
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    category = Column(String(100), nullable=True)
+    price = Column(Float, nullable=False)
+    stock = Column(Integer, nullable=False)
+    image_url = Column(String(500), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    # Relationships
+    creator = relationship("User", foreign_keys=[created_by])
+    organization = relationship("Organization", foreign_keys=[organization_id])
+
+
+class BookingService(Base):
+    __tablename__ = "booking_services"
+
+    id = Column(Integer, primary_key=True, index=True)
+    service_name = Column(String(255), nullable=False)
+    service_type = Column(String(100), nullable=True)
+    location = Column(String(255), nullable=True)
+    price = Column(Float, nullable=False)
+    capacity = Column(Integer, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    # Relationships
+    creator = relationship("User", foreign_keys=[created_by])
+    organization = relationship("Organization", foreign_keys=[organization_id])
+    slots = relationship("BookingSlot", back_populates="service", cascade="all, delete-orphan")
+
+
+class BookingSlot(Base):
+    __tablename__ = "booking_slots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    service_id = Column(Integer, ForeignKey("booking_services.id", ondelete="CASCADE"), nullable=False)
+    slot_time = Column(DateTime, nullable=False)
+    is_available = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    # Relationships
+    service = relationship("BookingService", back_populates="slots")

@@ -62,6 +62,7 @@ class TaskBase(BaseModel):
     status: str
     confidence: Optional[float] = None
     date: str
+    reference_id: Optional[str] = None
 
 class TaskCreate(TaskBase):
     id: str
@@ -151,3 +152,66 @@ class DashboardTaskStatus(BaseModel):
     pending: int
     running: int
     failed: int
+
+
+# Product schemas
+class ProductBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+    price: float
+    stock: int
+    image_url: Optional[str] = None
+    is_active: bool = True
+
+class ProductCreate(ProductBase):
+    pass
+
+class ProductResponse(ProductBase):
+    id: int
+    created_by: Optional[int] = None
+    organization_id: Optional[int] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Booking Slot schemas
+class BookingSlotBase(BaseModel):
+    slot_time: datetime
+    is_available: bool = True
+
+class BookingSlotCreate(BookingSlotBase):
+    service_id: int
+
+class BookingSlotResponse(BookingSlotBase):
+    id: int
+    service_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Booking Service schemas
+class BookingServiceBase(BaseModel):
+    service_name: str
+    service_type: Optional[str] = None
+    location: Optional[str] = None
+    price: float
+    capacity: int
+    is_active: bool = True
+
+class BookingServiceCreate(BookingServiceBase):
+    pass
+
+class BookingServiceResponse(BookingServiceBase):
+    id: int
+    created_by: Optional[int] = None
+    organization_id: Optional[int] = None
+    created_at: datetime
+    slots: List[BookingSlotResponse] = []
+
+    class Config:
+        from_attributes = True

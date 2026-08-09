@@ -84,31 +84,31 @@ export default function TaskTable({
     switch (status) {
       case "Verified":
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/10">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-green-500/10 text-green-500 border border-green-500/20">
             Verified
           </span>
         );
       case "Running":
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/10 animate-pulse">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse">
             Running
           </span>
         );
       case "Failed":
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/10">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-red-500/10 text-red-500 border border-red-500/20">
             Failed
           </span>
         );
       case "Needs Clarification":
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/10 animate-pulse">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse">
             Clarifying
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/10">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
             Pending
           </span>
         );
@@ -117,7 +117,7 @@ export default function TaskTable({
 
   return (
     <div className="space-y-4">
-      {/* Search & Filter Toolbar (Desktop, non-simple only) */}
+      {/* Search & Filter Toolbar */}
       {!simple && (
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           {/* Local Search Input */}
@@ -133,7 +133,7 @@ export default function TaskTable({
                 setQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#08120F]/65 border border-dash-border hover:border-dash-primary/50 focus:border-dash-primary rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none transition-all"
+              className="w-full bg-dash-card border border-dash-border hover:border-dash-primary/50 focus:border-dash-primary rounded-xl pl-9 pr-4 py-2.5 text-xs text-dash-text focus:outline-none transition-all font-semibold"
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function TaskTable({
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
                   filter === status
                     ? "bg-dash-primary/10 border-dash-primary/30 text-dash-primary"
-                    : "border-transparent text-dash-secondary hover:text-white hover:bg-dash-card"
+                    : "border-dash-border bg-dash-card text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5"
                 }`}
               >
                 {status}
@@ -160,10 +160,10 @@ export default function TaskTable({
       )}
 
       {/* Main Table Grid */}
-      <div className="overflow-x-auto border border-dash-border/60 rounded-xl bg-dash-sidebar/10">
+      <div className="overflow-x-auto border border-dash-border rounded-xl bg-dash-card shadow-sm">
         <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
-            <tr className="border-b border-dash-border/60 text-[10px] font-bold text-dash-secondary uppercase tracking-wider bg-dash-card/15">
+            <tr className="border-b border-dash-border text-[10px] font-bold text-dash-secondary uppercase tracking-wider bg-dash-bg">
               <th className="py-3.5 px-4.5">Task Name</th>
               <th className="py-3.5 px-3">Method</th>
               <th className="py-3.5 px-3">Status</th>
@@ -173,7 +173,7 @@ export default function TaskTable({
             </tr>
           </thead>
           
-          <tbody className="divide-y divide-dash-border/40 text-xs">
+          <tbody className="divide-y divide-dash-border text-xs">
             <AnimatePresence mode="popLayout">
               {displayedTasks.map((task) => (
                 <motion.tr
@@ -182,18 +182,18 @@ export default function TaskTable({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="hover:bg-dash-card/25 transition-all group"
+                  className="hover:bg-dash-primary/5 transition-all group"
                 >
                   {/* Task details */}
-                  <td className="py-3.5 px-4.5 font-semibold text-white max-w-[260px]">
+                  <td className="py-3.5 px-4.5 font-bold text-dash-text max-w-[260px]">
                     <div className="truncate group-hover:text-dash-primary transition-colors flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-dash-primary flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-dash-primary flex-shrink-0 animate-pulse-glow" />
                       <span>{task.name}</span>
                     </div>
                   </td>
 
                   {/* Method */}
-                  <td className="py-3.5 px-3 font-medium text-dash-secondary">
+                  <td className="py-3.5 px-3 font-semibold text-dash-secondary">
                     {task.method}
                   </td>
 
@@ -203,12 +203,12 @@ export default function TaskTable({
                   </td>
 
                   {/* Confidence */}
-                  <td className="py-3.5 px-3 text-right font-mono font-bold text-white">
+                  <td className="py-3.5 px-3 text-right font-mono font-bold text-dash-text">
                     {task.confidence !== null ? `${task.confidence}%` : "—"}
                   </td>
 
                   {/* Date */}
-                  <td className="py-3.5 px-4 text-right font-mono text-[10px] text-dash-secondary">
+                  <td className="py-3.5 px-4 text-right font-mono text-[10px] text-dash-secondary font-semibold">
                     {task.date} 10:30 AM
                   </td>
 
@@ -219,7 +219,7 @@ export default function TaskTable({
                         {onViewReport && (
                           <button
                             onClick={() => onViewReport(task.id)}
-                            className="px-2.5 py-1 bg-dash-primary/10 hover:bg-dash-primary/20 text-dash-primary hover:text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border border-dash-primary/10"
+                            className="px-2.5 py-1 bg-dash-primary/10 hover:bg-dash-primary/20 text-dash-primary hover:text-dash-hover rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border border-dash-primary/10 shadow-sm"
                           >
                             View Report
                           </button>
@@ -227,14 +227,14 @@ export default function TaskTable({
                         {onDeleteTask && !simple ? (
                           <button
                             onClick={() => onDeleteTask(task.id)}
-                            className="p-1.5 text-dash-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer transition-all"
+                            className="p-1.5 text-dash-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg cursor-pointer transition-all"
                             title="Delete verification record"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         ) : (
                           !onViewReport && (
-                            <button className="p-1.5 text-dash-secondary hover:text-white rounded hover:bg-dash-card/60 cursor-pointer">
+                            <button className="p-1.5 text-dash-secondary hover:text-dash-primary rounded hover:bg-dash-primary/5 cursor-pointer">
                               <MoreHorizontal className="w-4 h-4" />
                             </button>
                           )
@@ -249,7 +249,7 @@ export default function TaskTable({
         </table>
 
         {displayedTasks.length === 0 && (
-          <div className="py-10 text-center text-dash-secondary text-xs">
+          <div className="py-10 text-center text-dash-secondary text-xs font-semibold">
             No outcomes registered in this state index.
           </div>
         )}
@@ -266,19 +266,19 @@ export default function TaskTable({
             <button
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-1.5 border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-white rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer bg-dash-sidebar/10"
+              className="p-1.5 border border-dash-border hover:border-dash-primary text-dash-secondary hover:text-dash-primary rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer bg-dash-card"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
 
-            <span className="text-[10px] font-bold px-2 py-1 text-white bg-dash-primary/20 border border-dash-primary/45 rounded-lg">
+            <span className="text-[10px] font-black px-2 py-1 text-dash-primary bg-dash-primary/10 border border-dash-primary/20 rounded-lg">
               {currentPage}
             </span>
             
             <button
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="p-1.5 border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-white rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer bg-dash-sidebar/10"
+              className="p-1.5 border border-dash-border hover:border-dash-primary text-dash-secondary hover:text-dash-primary rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer bg-dash-card"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>

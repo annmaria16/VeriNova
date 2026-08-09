@@ -6,7 +6,7 @@ export default function Login() {
   return (
     <AuthLayout
       title="Welcome Back"
-      subtitle="Secure access to AI Outcome Verification"
+      subtitle="Secure access to your AI booking & verification assistant"
     >
       <LoginForm />
       <SocialLogin dividerText="or continue with" />

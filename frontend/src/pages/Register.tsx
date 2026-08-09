@@ -6,7 +6,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Create Account"
-      subtitle="Start verifying your AI outcomes in production"
+      subtitle="Start using your personal AI booking & verification assistant"
     >
       <RegisterForm />
       <SocialLogin dividerText="or sign up with" />

@@ -1,38 +1,27 @@
-import { ArrowRight, Play, Shield, Cpu, Lock, Link2, FileCode } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { ArrowRight, Play, ShieldCheck, Link2, Lock, FileText, Settings, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 export default function Hero() {
-  const [pulseCount, setPulseCount] = useState(0);
-
-  // Trigger pulse animation every 4 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulseCount((prev) => prev + 1);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Floating particles coordinate data
+  // Drifting ambient orange particles
   const particles = [
-    { id: 1, x: "15%", y: "20%", size: 6, delay: 0 },
-    { id: 2, x: "85%", y: "25%", size: 8, delay: 1 },
-    { id: 3, x: "75%", y: "80%", size: 5, delay: 0.5 },
-    { id: 4, x: "20%", y: "75%", size: 7, delay: 1.5 },
-    { id: 5, x: "50%", y: "15%", size: 6, delay: 2.2 },
-    { id: 6, x: "10%", y: "50%", size: 5, delay: 0.8 },
+    { id: 1, x: "12%", y: "15%", size: 6, delay: 0 },
+    { id: 2, x: "88%", y: "22%", size: 8, delay: 1.5 },
+    { id: 3, x: "78%", y: "82%", size: 5, delay: 0.8 },
+    { id: 4, x: "18%", y: "78%", size: 7, delay: 2.2 },
+    { id: 5, x: "50%", y: "8%", size: 6, delay: 1.2 },
+    { id: 6, x: "8%", y: "48%", size: 5, delay: 0.4 },
   ];
 
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#08120F] pt-28 lg:pt-20 pb-16"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-dash-bg pt-28 lg:pt-20 pb-16"
     >
       {/* Subtle Grid Overlay and Glowing Backgrounds */}
       <div className="absolute inset-0 bg-grid-pattern opacity-100 pointer-events-none"></div>
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#22C55E]/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#4ADE80]/5 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[150px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full z-10 grid lg:grid-cols-2 gap-16 items-center">
         {/* Left Content */}
@@ -43,40 +32,41 @@ export default function Hero() {
           className="text-left"
         >
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10211C] border border-[#14532D] shadow-[0_0_15px_rgba(34,197,94,0.1)] mb-6">
-            <span className="text-yellow-400 text-xs">⭐</span>
-            <span className="text-[#4ADE80] text-xs font-bold uppercase tracking-wider">
-              AI Outcome Verification Platform
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-dash-primary/10 border border-dash-primary/30 shadow-[0_4px_12px_rgba(139,92,246,0.08)] mb-6">
+            <Sparkles size={14} className="text-dash-primary animate-pulse" />
+            <span className="text-dash-primary text-xs font-black uppercase tracking-wider">
+              AI OUTCOME VERIFICATION PLATFORM
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-            Verify AI Outcomes
-            <span className="block mt-2 bg-gradient-to-r from-[#22C55E] to-[#4ADE80] bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-              Before You Trust Them
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-dash-text leading-tight tracking-tight">
+            AI Executes.
+            <span className="block mt-2 bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] bg-clip-text text-transparent drop-shadow-[0_4px_15px_rgba(139,92,246,0.25)]">
+              VeriNova Verifies.
             </span>
+            You Trust with Confidence.
           </h1>
 
-          {/* Subtitle */}
-          <p className="mt-6 text-gray-400 text-base sm:text-lg leading-relaxed max-w-xl">
-            Empower your automated systems with independent validation. VeriNova
-            uses multi-source evidence collection, confidence scoring, and cryptographic logs
-            to certify LLM decisions in real time.
+          {/* Subheading */}
+          <p className="mt-6 text-dash-secondary text-base sm:text-lg leading-relaxed max-w-xl font-bold">
+            Describe what you need. Our AI Assistant searches products, compares prices, 
+            books reservations, executes purchases, verifies the outcome, and compiles 
+            tamper-proof receipts automatically—all in one premium interface.
           </p>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Link
               to="/register"
-              className="glow-btn bg-[#22C55E] hover:bg-[#4ADE80] text-[#08120F] font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:shadow-[0_0_30px_rgba(74,222,128,0.6)] transform hover:scale-[1.02] transition-all duration-300"
+              className="glow-btn bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-95 text-white font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_25px_rgba(236,72,153,0.45)] transform hover:scale-[1.02] transition-all duration-300"
             >
               Get Started
               <ArrowRight size={20} />
             </Link>
 
-            <button className="border border-[#14532D] bg-[#10211C]/40 hover:bg-[#10211C] text-gray-300 hover:text-white px-8 py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 group">
-              <span className="p-1 rounded-full bg-[#14532D] text-[#22C55E] group-hover:bg-[#22C55E] group-hover:text-[#08120F] transition-all duration-300">
+            <button className="border border-dash-border bg-dash-card hover:bg-dash-primary/5 text-dash-text hover:text-dash-primary px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:border-[#8B5CF6]/40 transition-all duration-300 group cursor-pointer font-bold">
+              <span className="p-1 rounded-full bg-dash-primary/10 text-dash-primary group-hover:bg-dash-primary group-hover:text-white transition-all duration-300">
                 <Play size={14} fill="currentColor" />
               </span>
               Watch Demo
@@ -84,139 +74,215 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* Right Cybersecurity Dashboard Illustration */}
+        {/* Right Circular Operating System Animation */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1 }}
-          className="relative flex justify-center items-center w-full min-h-[450px]"
+          className="relative flex justify-center items-center w-full min-h-[480px]"
         >
-          {/* Main Visual Wrapper with Glassmorphism */}
-          <div className="relative w-full max-w-[420px] aspect-square rounded-full border border-[#14532D]/40 bg-[#10211C]/20 shadow-[0_0_60px_rgba(34,197,94,0.05)] backdrop-blur-sm flex items-center justify-center">
-            {/* Pulsing glow ring from center */}
-            <div className="absolute inset-0 bg-radial-gradient from-[#22C55E]/10 to-transparent rounded-full pointer-events-none"></div>
+          {/* Main Visual Core Container */}
+          <div className="relative w-full max-w-[440px] aspect-square flex items-center justify-center">
+            
+            {/* Center Glowing Orbit Ring Base */}
+            <div className="absolute w-[74%] h-[74%] rounded-full bg-radial-gradient from-[#8B5CF6]/5 to-transparent pointer-events-none"></div>
 
-            {/* Concentric Rotating Rings */}
+            {/* Breathing Animation Background Pulse */}
+            <motion.div
+              animate={{
+                scale: [1, 1.05, 1],
+                opacity: [0.15, 0.35, 0.15],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute w-[78%] h-[78%] rounded-full border-2 border-[#8B5CF6] filter blur-[8px] pointer-events-none"
+            />
+
+            {/* Glowing rotating ring - slow outer rotation */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[92%] h-[92%] rounded-full border border-dashed border-[#14532D]/30"
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              className="absolute w-[80%] h-[80%] rounded-full border-2 border-dashed border-[#8B5CF6]/30 shadow-[0_0_15px_rgba(139,92,246,0.05)]"
             />
+
+            {/* Inner Rotating Ring */}
             <motion.div
               animate={{ rotate: -360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[80%] h-[80%] rounded-full border border-dashed border-[#22C55E]/20"
-            />
-            <motion.div
-              animate={{ rotate: 180 }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="absolute w-[68%] h-[68%] rounded-full border border-double border-[#14532D]/40"
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+              className="absolute w-[66%] h-[66%] rounded-full border border-dashed border-[#22D3EE]/20"
             />
 
-            {/* Interactive Grid Lines connecting nodes */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
-              {/* Central connection lines */}
-              <line x1="50%" y1="50%" x2="50%" y2="28%" stroke="#14532D" strokeWidth="1.5" strokeDasharray="4 4" />
-              <line x1="50%" y1="50%" x2="25%" y2="58%" stroke="#14532D" strokeWidth="1.5" strokeDasharray="4 4" />
-              <line x1="50%" y1="50%" x2="75%" y2="58%" stroke="#14532D" strokeWidth="1.5" strokeDasharray="4 4" />
+            {/* SVG Network Connections & Flowing Tracers */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+              <defs>
+                <linearGradient id="tracerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.85" />
+                  <stop offset="50%" stopColor="#EC4899" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#22D3EE" stopOpacity="0.95" />
+                </linearGradient>
+              </defs>
 
-              {/* Upper Network Lines */}
-              <line x1="33%" y1="28%" x2="67%" y2="28%" stroke="#22C55E" strokeWidth="1.5" opacity="0.6" />
-              <line x1="33%" y1="28%" x2="20%" y2="40%" stroke="#14532D" strokeWidth="1.5" />
-              <line x1="67%" y1="28%" x2="80%" y2="40%" stroke="#14532D" strokeWidth="1.5" />
+              {/* Main Dotted Lines branching from Center/Decision */}
+              {/* Left Branch */}
+              <path
+                d="M 220,70 L 105,140 L 95,250 L 220,360"
+                fill="none"
+                stroke="var(--dash-border)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+              />
+              {/* Right Branch */}
+              <path
+                d="M 220,70 L 335,140 L 345,250 L 220,360"
+                fill="none"
+                stroke="var(--dash-border)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+              />
+              {/* Center Line */}
+              <line
+                x1="220"
+                y1="70"
+                x2="220"
+                y2="360"
+                stroke="var(--dash-border)"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+              />
 
-              {/* Connection between AI node and Shield */}
-              <line x1="50%" y1="28%" x2="50%" y2="68%" stroke="#4ADE80" strokeWidth="2" strokeDasharray="6 4" opacity="0.8" />
+              {/* Glowing animated line flow from AI Execution to Verified */}
+              <motion.path
+                d="M 220,70 Q 220,215 220,360"
+                fill="none"
+                stroke="url(#tracerGradient)"
+                strokeWidth="2.5"
+                strokeDasharray="10 15"
+                animate={{ strokeDashoffset: [0, -50] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="filter drop-shadow-[0_0_6px_rgba(139,92,246,0.8)]"
+              />
+              
+              <motion.path
+                d="M 220,70 Q 105,140 95,250 Q 220,360 220,360"
+                fill="none"
+                stroke="url(#tracerGradient)"
+                strokeWidth="2"
+                strokeDasharray="8 12"
+                animate={{ strokeDashoffset: [0, -40] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                className="filter drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]"
+              />
+
+              <motion.path
+                d="M 220,70 Q 335,140 345,250 Q 220,360 220,360"
+                fill="none"
+                stroke="url(#tracerGradient)"
+                strokeWidth="2"
+                strokeDasharray="8 12"
+                animate={{ strokeDashoffset: [0, -40] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                className="filter drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]"
+              />
             </svg>
 
-            {/* Pulse waves triggered on interval */}
-            <AnimatePresence>
-              {pulseCount >= 0 && (
-                <motion.div
-                  key={pulseCount}
-                  initial={{ scale: 0.1, opacity: 0.8 }}
-                  animate={{ scale: 1.3, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 3.5, ease: "easeOut" }}
-                  className="absolute w-[60%] h-[60%] rounded-full border-2 border-[#4ADE80] shadow-[0_0_30px_rgba(74,222,128,0.4)] pointer-events-none"
-                />
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {pulseCount >= 0 && (
-                <motion.div
-                  key={pulseCount + 100}
-                  initial={{ scale: 0.1, opacity: 0.6 }}
-                  animate={{ scale: 1.1, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 2.5, delay: 0.5, ease: "easeOut" }}
-                  className="absolute w-[60%] h-[60%] rounded-full border border-[#22C55E] pointer-events-none"
-                />
-              )}
-            </AnimatePresence>
+            {/* ========================================== */}
+            {/* FLOATING NODES                             */}
+            {/* ========================================== */}
 
-            {/* Central Network Node: "AI" Ring (Upper Center) */}
+            {/* TOP NODE: AI EXECUTION */}
             <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[18%] left-[36%] right-[36%] aspect-video bg-[#10211C] border border-[#22C55E] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.2)] z-20"
+              animate={{
+                y: [0, -4, 0],
+                boxShadow: [
+                  "0 4px 20px rgba(139,92,246,0.2)",
+                  "0 4px 30px rgba(139,92,246,0.45)",
+                  "0 4px 20px rgba(139,92,246,0.2)"
+                ]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[8%] z-20 px-6 py-2.5 bg-dash-card border border-dash-primary/40 rounded-xl flex items-center gap-2"
             >
-              <div className="flex items-center gap-1.5">
-                <Cpu size={14} className="text-[#4ADE80] animate-pulse" />
-                <span className="text-white text-xs font-black tracking-widest">AI DECISION</span>
-              </div>
+              <Sparkles size={14} className="text-dash-primary animate-pulse" />
+              <span className="text-dash-text text-xs font-black tracking-widest uppercase">
+                AI EXECUTION
+              </span>
             </motion.div>
 
-            {/* Central Verification Node: "Shield Check" (Lower Center) */}
+            {/* TOP LEFT NODE: EVIDENCE COLLECTION (API) */}
             <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 5, delay: 1, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[20%] w-24 h-24 rounded-full border-2 border-[#4ADE80] bg-[#08120F] flex flex-col items-center justify-center shadow-[0_0_40px_rgba(74,222,128,0.3)] z-20"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 4.5, delay: 0.3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[22%] left-[4%] z-20 w-11 h-11 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center shadow-lg hover:border-dash-primary transition-colors cursor-pointer group"
+              title="Evidence Collection: APIs"
             >
-              <Shield size={36} className="text-[#4ADE80] fill-[#4ADE80]/15" />
-              <span className="text-[10px] font-black text-gray-300 mt-1 tracking-wider">VERIFIED</span>
+              <Link2 size={18} className="text-dash-secondary group-hover:text-dash-primary transition-colors" />
             </motion.div>
 
-            {/* Orbital Network Nodes */}
-            {/* Top Left: API Evidence */}
-            <div className="absolute top-[22%] left-[10%] w-10 h-10 rounded-lg bg-[#10211C] border border-[#14532D] flex items-center justify-center shadow-[0_0_15px_rgba(20,83,45,0.4)] hover:border-[#22C55E] transition-colors cursor-pointer group">
-              <Link2 size={16} className="text-gray-400 group-hover:text-[#22C55E] transition-colors" />
-            </div>
-
-            {/* Top Right: Logs */}
-            <div className="absolute top-[22%] right-[10%] w-10 h-10 rounded-lg bg-[#10211C] border border-[#14532D] flex items-center justify-center shadow-[0_0_15px_rgba(20,83,45,0.4)] hover:border-[#22C55E] transition-colors cursor-pointer group">
-              <FileCode size={16} className="text-gray-400 group-hover:text-[#22C55E] transition-colors" />
-            </div>
-
-            {/* Left Mid: Secure Vault */}
-            <div className="absolute top-[48%] left-[2%] w-10 h-10 rounded-lg bg-[#10211C] border border-[#14532D] flex items-center justify-center shadow-[0_0_15px_rgba(20,83,45,0.4)] hover:border-[#22C55E] transition-colors cursor-pointer group">
-              <Lock size={16} className="text-gray-400 group-hover:text-[#22C55E] transition-colors" />
-            </div>
-
-            {/* Right Mid: Real-time Monitor */}
-            <div className="absolute top-[48%] right-[2%] w-10 h-10 rounded-lg bg-[#10211C] border border-[#14532D] flex items-center justify-center shadow-[0_0_15px_rgba(20,83,45,0.4)] hover:border-[#22C55E] transition-colors cursor-pointer group">
-              <Cpu size={16} className="text-gray-400 group-hover:text-[#22C55E] transition-colors" />
-            </div>
-
-            {/* Scanning Laser Line */}
+            {/* BOTTOM LEFT NODE: VERIFICATION */}
             <motion.div
-              animate={{ top: ["15%", "85%", "15%"] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-[#4ADE80] to-transparent shadow-[0_0_12px_#4ADE80] opacity-70 z-10 pointer-events-none"
-            />
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 5, delay: 0.6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[36%] left-[4%] z-20 w-11 h-11 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center shadow-lg hover:border-dash-primary transition-colors cursor-pointer group"
+              title="Independent Verification"
+            >
+              <Lock size={18} className="text-dash-secondary group-hover:text-dash-primary transition-colors" />
+            </motion.div>
+
+            {/* TOP RIGHT NODE: EVIDENCE COLLECTION (DB) */}
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 4.5, delay: 0.9, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[22%] right-[4%] z-20 w-11 h-11 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center shadow-lg hover:border-dash-primary transition-colors cursor-pointer group"
+              title="Evidence Collection: Database"
+            >
+              <FileText size={18} className="text-dash-secondary group-hover:text-dash-primary transition-colors" />
+            </motion.div>
+
+            {/* BOTTOM RIGHT NODE: VERIFICATION (RULES) */}
+            <motion.div
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 5, delay: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[36%] right-[4%] z-20 w-11 h-11 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center shadow-lg hover:border-dash-primary transition-colors cursor-pointer group"
+              title="Confidence Scoring Rules"
+            >
+              <Settings size={18} className="text-dash-secondary group-hover:text-dash-primary transition-colors" />
+            </motion.div>
+
+            {/* BOTTOM NODE: VERIFIED BADGE (Shield circle) */}
+            <motion.div
+              animate={{
+                scale: [1, 1.05, 1],
+                boxShadow: [
+                  "0 8px 30px rgba(139,92,246,0.25)",
+                  "0 8px 45px rgba(34,211,238,0.45)",
+                  "0 8px 30px rgba(139,92,246,0.25)"
+                ]
+              }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[8%] z-20 w-24 h-24 rounded-full border-2 border-[#22D3EE] bg-dash-card flex flex-col items-center justify-center"
+            >
+              <ShieldCheck size={36} className="text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+              <span className="text-[10px] font-black text-dash-text mt-1 tracking-widest uppercase">
+                VERIFIED
+              </span>
+            </motion.div>
+
           </div>
 
-          {/* Drifting Background Particles */}
+          {/* Drifting background particles */}
           {particles.map((particle) => (
             <motion.div
               key={particle.id}
               animate={{
-                y: [0, -25, 0],
-                x: [0, 15, 0],
-                opacity: [0.3, 0.9, 0.3],
+                y: [0, -30, 0],
+                x: [0, 20, 0],
+                opacity: [0.15, 0.7, 0.15],
               }}
               transition={{
-                duration: 6 + particle.size * 0.5,
+                duration: 5 + particle.size * 0.4,
                 repeat: Infinity,
                 delay: particle.delay,
                 ease: "easeInOut",
@@ -227,7 +293,7 @@ export default function Hero() {
                 width: particle.size,
                 height: particle.size,
               }}
-              className="absolute rounded-full bg-[#4ADE80]/30 shadow-[0_0_8px_#4ADE80] pointer-events-none"
+              className="absolute rounded-full bg-[#EC4899]/25 shadow-[0_0_6px_rgba(139,92,246,0.3)] pointer-events-none"
             />
           ))}
         </motion.div>

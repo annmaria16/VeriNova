@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTheme } from "../../hooks/useTheme";
 
 interface ChartCardProps {
   title: string;
@@ -21,6 +22,12 @@ export default function ChartCard({
   failed = 0,
   tasks = [],
 }: ChartCardProps) {
+  const { theme } = useTheme();
+  
+  // Theme-aware colors
+  const gridColor = theme === "dark" ? "rgba(255, 255, 255, 0.08)" : "#EAE6E2";
+  const baseCircleColor = theme === "dark" ? "rgba(255, 255, 255, 0.04)" : "#E2E8F0";
+
   // Chart rendering helpers
   const renderSuccessRate = () => {
     // 6 data points showing an area curve from 92% to 99%
@@ -31,15 +38,15 @@ export default function ChartCard({
       <svg className="w-full h-32" viewBox="0 0 400 120" preserveAspectRatio="none">
         <defs>
           <linearGradient id="areaGlowCard" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
           </linearGradient>
         </defs>
         
         {/* Horizontal grid lines */}
-        <line x1="0" y1="30" x2="400" y2="30" stroke="#374151" strokeWidth="1" strokeDasharray="4 4" />
-        <line x1="0" y1="60" x2="400" y2="60" stroke="#374151" strokeWidth="1" strokeDasharray="4 4" />
-        <line x1="0" y1="90" x2="400" y2="90" stroke="#374151" strokeWidth="1" strokeDasharray="4 4" />
+        <line x1="0" y1="30" x2="400" y2="30" stroke={gridColor} strokeWidth="1" strokeDasharray="4 4" />
+        <line x1="0" y1="60" x2="400" y2="60" stroke={gridColor} strokeWidth="1" strokeDasharray="4 4" />
+        <line x1="0" y1="90" x2="400" y2="90" stroke={gridColor} strokeWidth="1" strokeDasharray="4 4" />
         
         {/* Glow Area */}
         <polygon points={fillPoints} fill="url(#areaGlowCard)" />
@@ -48,7 +55,7 @@ export default function ChartCard({
         <motion.polyline
           points={points}
           fill="none"
-          stroke="#10B981"
+          stroke="#8B5CF6"
           strokeWidth="2.5"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
@@ -56,12 +63,12 @@ export default function ChartCard({
         />
         
         {/* Endpoint dots */}
-        <circle cx="0" cy="80" r="3.5" fill="#10B981" />
-        <circle cx="80" cy="45" r="3.5" fill="#10B981" />
-        <circle cx="160" cy="50" r="3.5" fill="#10B981" />
-        <circle cx="240" cy="25" r="3.5" fill="#10B981" />
-        <circle cx="320" cy="15" r="3.5" fill="#10B981" />
-        <circle cx="400" cy="10" r="4.5" fill="#34D399" stroke="#111827" strokeWidth="1.5" />
+        <circle cx="0" cy="80" r="3.5" fill="#8B5CF6" />
+        <circle cx="80" cy="45" r="3.5" fill="#8B5CF6" />
+        <circle cx="160" cy="50" r="3.5" fill="#8B5CF6" />
+        <circle cx="240" cy="25" r="3.5" fill="#8B5CF6" />
+        <circle cx="320" cy="15" r="3.5" fill="#8B5CF6" />
+        <circle cx="400" cy="10" r="4.5" fill="#22D3EE" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
       </svg>
     );
   };
@@ -83,7 +90,7 @@ export default function ChartCard({
         <div className="relative w-28 h-28">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
             {/* Background base */}
-            <circle cx="60" cy="60" r="50" fill="transparent" stroke="#374151" strokeWidth="9" />
+            <circle cx="60" cy="60" r="50" fill="transparent" stroke={baseCircleColor} strokeWidth="9" />
             
             {/* Pending segment (yellow) */}
             <motion.circle
@@ -123,7 +130,7 @@ export default function ChartCard({
               cy="60"
               r="50"
               fill="transparent"
-              stroke="#10B981"
+              stroke="#22C55E"
               strokeWidth="10"
               strokeDasharray={circ}
               initial={{ strokeDashoffset: circ }}
@@ -133,24 +140,24 @@ export default function ChartCard({
           </svg>
           
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[10px] text-dash-secondary font-bold uppercase tracking-wider">Total</span>
-            <span className="text-lg font-black text-white">{total}</span>
+            <span className="text-[10px] text-dash-secondary font-black uppercase tracking-wider">Total</span>
+            <span className="text-lg font-black text-dash-text">{total}</span>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="space-y-2 text-left text-xs font-semibold">
+        <div className="space-y-2 text-left text-xs font-bold text-dash-secondary">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 bg-[#10B981] rounded-full" />
-            <span className="text-white">Verified ({verifiedPercent.toFixed(0)}%)</span>
+            <div className="w-2.5 h-2.5 bg-[#22C55E] rounded-full" />
+            <span className="text-dash-text">Verified ({verifiedPercent.toFixed(0)}%)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-[#F59E0B] rounded-full" />
-            <span className="text-white">Pending ({pendingPercent.toFixed(0)}%)</span>
+            <span className="text-dash-text">Pending ({pendingPercent.toFixed(0)}%)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-[#EF4444] rounded-full" />
-            <span className="text-white">Failed ({failedPercent.toFixed(0)}%)</span>
+            <span className="text-dash-text">Failed ({failedPercent.toFixed(0)}%)</span>
           </div>
         </div>
       </div>
@@ -167,15 +174,15 @@ export default function ChartCard({
           const days = ["M", "T", "W", "T", "F", "S", "S"];
           return (
             <div key={i} className="flex flex-col items-center flex-1 space-y-2">
-              <div className="w-4 bg-dash-card rounded-t-md h-full flex items-end relative group border border-dash-border">
+              <div className="w-4 bg-dash-bg rounded-t-md h-full flex items-end relative group border border-dash-border">
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: `${h}%` }}
                   transition={{ duration: 0.8, delay: i * 0.1 }}
-                  className="w-full bg-gradient-to-t from-[#14532D] to-[#10B981] rounded-t-[4px] shadow-[0_0_10px_rgba(16,185,129,0.15)] group-hover:from-[#10B981] group-hover:to-[#34D399]"
+                  className="w-full bg-gradient-to-t from-[#22D3EE] via-[#EC4899] to-[#8B5CF6] rounded-t-[4px] shadow-[0_2px_6px_rgba(139,92,246,0.15)] hover:opacity-95"
                 />
               </div>
-              <span className="text-[9px] text-dash-secondary font-bold">{days[i]}</span>
+              <span className="text-[9px] text-dash-secondary font-black">{days[i]}</span>
             </div>
           );
         })}
@@ -225,15 +232,15 @@ export default function ChartCard({
       <div className="space-y-2">
         <svg className="w-full h-32" viewBox="0 0 380 110">
           {/* Horizontal lines */}
-          <line x1="0" y1="20" x2="380" y2="20" stroke="#374151" strokeWidth="1" strokeDasharray="4 4" />
-          <line x1="0" y1="60" x2="380" y2="60" stroke="#374151" strokeWidth="1" strokeDasharray="4 4" />
-          <line x1="0" y1="100" x2="380" y2="100" stroke="#374151" strokeWidth="1" />
+          <line x1="0" y1="20" x2="380" y2="20" stroke={gridColor} strokeWidth="1" strokeDasharray="4 4" />
+          <line x1="0" y1="60" x2="380" y2="60" stroke={gridColor} strokeWidth="1" strokeDasharray="4 4" />
+          <line x1="0" y1="100" x2="380" y2="100" stroke={gridColor} strokeWidth="1" />
 
           {/* Stroke Path */}
           <motion.polyline
             points={points}
             fill="none"
-            stroke="#10B981"
+            stroke="#8B5CF6"
             strokeWidth="3"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -242,14 +249,14 @@ export default function ChartCard({
           />
 
           {/* Data point circles */}
-          <circle cx="10" cy={getSvgY(counts[0])} r="4.5" fill="#10B981" stroke="#111827" strokeWidth="1.5" />
-          <circle cx="130" cy={getSvgY(counts[1])} r="4.5" fill="#10B981" stroke="#111827" strokeWidth="1.5" />
-          <circle cx="250" cy={getSvgY(counts[2])} r="4.5" fill="#10B981" stroke="#111827" strokeWidth="1.5" />
-          <circle cx="370" cy={getSvgY(counts[3])} r="5.5" fill="#34D399" stroke="#111827" strokeWidth="2" />
+          <circle cx="10" cy={getSvgY(counts[0])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="130" cy={getSvgY(counts[1])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="250" cy={getSvgY(counts[2])} r="4.5" fill="#8B5CF6" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="1.5" />
+          <circle cx="370" cy={getSvgY(counts[3])} r="5.5" fill="#22D3EE" stroke={theme === "dark" ? "#0A0D18" : "#FFFFFF"} strokeWidth="2" />
         </svg>
 
         {/* Labels */}
-        <div className="flex justify-between px-2 text-[9px] text-dash-secondary font-bold">
+        <div className="flex justify-between px-2 text-[9px] text-dash-secondary font-black">
           {months.map((m, idx) => (
             <span key={idx}>{m} ({counts[idx]} runs)</span>
           ))}
@@ -259,10 +266,10 @@ export default function ChartCard({
   };
 
   return (
-    <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-5 shadow-xl backdrop-blur-md text-left flex flex-col justify-between">
+    <div className="bg-dash-card border border-dash-border rounded-2xl p-5 shadow-sm text-left flex flex-col justify-between">
       <div>
-        <h3 className="font-black text-white text-sm tracking-tight">{title}</h3>
-        <p className="text-[10px] text-dash-secondary mt-0.5 font-bold uppercase tracking-wider">{subtitle}</p>
+        <h3 className="font-black text-dash-text text-sm tracking-tight">{title}</h3>
+        <p className="text-[10px] text-dash-secondary mt-0.5 font-black uppercase tracking-wider">{subtitle}</p>
       </div>
 
       <div className="mt-6 flex-1">

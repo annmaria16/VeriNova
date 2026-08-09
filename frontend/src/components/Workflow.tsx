@@ -47,21 +47,21 @@ export default function Workflow() {
   }, []);
 
   return (
-    <section id="how-it-works" className="relative py-24 bg-[#08120F] border-t border-[#14532D]/20 overflow-hidden">
+    <section id="how-it-works" className="relative py-24 bg-dash-sidebar border-t border-dash-border overflow-hidden">
       {/* Background glow effects */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#22C55E]/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-dash-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-[#22C55E] text-xs font-bold uppercase tracking-[0.2em]">
+          <span className="text-dash-primary text-xs font-bold uppercase tracking-[0.2em]">
             Operational Flow
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-3 leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
             How VeriNova Works
           </h2>
-          <p className="text-gray-400 mt-4 text-base leading-relaxed">
+          <p className="text-dash-secondary mt-4 text-base leading-relaxed font-semibold">
             A pipeline designed to intercept, investigate, and validate outputs before committing decisions. Click steps to inspect.
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function Workflow() {
         <div className="relative flex flex-col items-center">
           
           {/* Horizontal line for desktop, vertical line for mobile */}
-          <div className="absolute top-[28px] left-[50%] -translate-x-1/2 w-0.5 h-[calc(100%-60px)] lg:top-[38px] lg:left-6 lg:right-6 lg:w-[calc(100%-48px)] lg:h-0.5 lg:translate-x-0 bg-[#14532D] -z-10 opacity-70">
+          <div className="absolute top-[28px] left-[50%] -translate-x-1/2 w-0.5 h-[calc(100%-60px)] lg:top-[38px] lg:left-6 lg:right-6 lg:w-[calc(100%-48px)] lg:h-0.5 lg:translate-x-0 bg-dash-border -z-10 opacity-70">
             {/* Animated traveling dot along the line */}
             <motion.div
               animate={{
@@ -81,7 +81,7 @@ export default function Workflow() {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="hidden lg:block absolute top-1/2 -translate-y-1/2 w-8 h-[2px] bg-gradient-to-r from-transparent via-[#4ADE80] to-transparent shadow-[0_0_10px_#4ADE80]"
+              className="hidden lg:block absolute top-1/2 -translate-y-1/2 w-8 h-[2px] bg-gradient-to-r from-transparent via-[#8B5CF6] to-transparent shadow-[0_0_10px_#8B5CF6]"
             />
           </div>
 
@@ -102,18 +102,18 @@ export default function Workflow() {
                       {isActive && (
                         <motion.div
                           layoutId="activeGlow"
-                          className="absolute -inset-2.5 rounded-full border-2 border-[#22C55E] bg-[#22C55E]/5 shadow-[0_0_20px_rgba(34,197,94,0.4)] pointer-events-none"
+                          className="absolute -inset-2.5 rounded-full border-2 border-[#8B5CF6] bg-[#8B5CF6]/5 shadow-[0_0_20px_rgba(139,92,246,0.3)] pointer-events-none"
                           transition={{ type: "spring", stiffness: 100, damping: 15 }}
                         />
                       )}
                     </AnimatePresence>
-
+ 
                     {/* Central Bubble */}
                     <div
                       className={`w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center border transition-all duration-300 ${
                         isActive
-                          ? "bg-[#22C55E] border-[#22C55E] text-[#08120F] shadow-[0_0_25px_rgba(74,222,128,0.5)]"
-                          : "bg-[#10211C] border-[#14532D] text-[#22C55E] hover:border-[#22C55E]/70"
+                          ? "bg-[#8B5CF6] border-[#8B5CF6] text-white shadow-[0_8px_25px_rgba(139,92,246,0.35)]"
+                          : "bg-dash-bg border-dash-border text-dash-primary hover:border-dash-primary/70"
                       }`}
                     >
                       <Icon size={24} className={isActive ? "scale-110" : "group-hover:scale-110 transition-transform"} />
@@ -122,9 +122,9 @@ export default function Workflow() {
                     {/* Step number badge */}
                     <div
                       className={`absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center border transition-all duration-300 ${
-                        isActive
-                          ? "bg-white border-white text-[#08120F]"
-                          : "bg-[#10211C] border-[#14532D] text-gray-400"
+                        activeStep === idx
+                          ? "bg-dash-card border-[#8B5CF6] text-[#8B5CF6]"
+                          : "bg-dash-bg border-dash-border text-dash-secondary group-hover:border-dash-primary/30"
                       }`}
                     >
                       {idx + 1}
@@ -140,20 +140,20 @@ export default function Workflow() {
                     className="flex flex-col items-center"
                   >
                     <h3
-                      className={`text-base sm:text-lg font-bold transition-colors ${
-                        isActive ? "text-[#4ADE80]" : "text-white group-hover:text-[#22C55E]"
+                      className={`text-base sm:text-lg font-black transition-colors ${
+                        isActive ? "text-dash-primary" : "text-dash-text group-hover:text-[#8B5CF6]"
                       }`}
                     >
                       {step.title}
                     </h3>
-                    <p className="text-gray-400 text-xs mt-2 max-w-[200px] leading-relaxed">
+                    <p className="text-dash-secondary text-xs mt-2 max-w-[200px] leading-relaxed font-semibold">
                       {step.desc}
                     </p>
                   </motion.div>
 
                   {/* Flow Arrow for mobile view */}
                   {idx < steps.length - 1 && (
-                    <div className="lg:hidden mt-8 text-[#14532D] flex flex-col items-center animate-pulse">
+                    <div className="lg:hidden mt-8 text-dash-border flex flex-col items-center animate-pulse">
                       <span>↓</span>
                     </div>
                   )}

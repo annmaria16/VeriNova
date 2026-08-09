@@ -79,8 +79,8 @@ export default function Stats() {
   ];
 
   return (
-    <section className="relative py-12 bg-[#08120F] border-y border-[#14532D]/30 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#22C55E]/2 to-transparent pointer-events-none"></div>
+    <section className="relative py-12 bg-dash-bg border-y border-dash-border overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-dash-primary/2 to-transparent pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -93,29 +93,29 @@ export default function Stats() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="glass-panel group relative rounded-2xl p-6 flex flex-col justify-between hover:border-[#22C55E]/40 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] transition-all duration-300 overflow-hidden"
+                className="glass-panel group relative rounded-2xl p-6 flex flex-col justify-between hover:border-dash-primary/45 hover:shadow-[0_12px_30px_rgba(139,92,246,0.08)] transition-all duration-300 overflow-hidden"
               >
                 {/* Micro-glow behind hover */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#22C55E]/5 to-transparent rounded-bl-full group-hover:from-[#22C55E]/15 transition-all duration-300"></div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-dash-primary/5 to-transparent rounded-bl-full group-hover:from-dash-primary/10 transition-all duration-300"></div>
 
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-semibold tracking-wider text-gray-400 uppercase group-hover:text-gray-300 transition-colors">
+                  <span className="text-xs font-bold tracking-wider text-dash-secondary uppercase group-hover:text-dash-primary transition-colors">
                     {item.title}
                   </span>
-                  <div className="p-2.5 rounded-xl bg-[#10211C] border border-[#14532D] text-[#22C55E] group-hover:border-[#22C55E] group-hover:bg-[#22C55E]/10 transition-all duration-300">
+                  <div className="p-2.5 rounded-xl bg-dash-card border border-dash-border text-dash-primary group-hover:border-dash-primary/40 group-hover:bg-dash-primary/10 transition-all duration-300">
                     <Icon size={20} />
                   </div>
                 </div>
 
-                <div className="mt-2">
-                  <div className="text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                <div className="mt-2 text-left">
+                  <div className="text-4xl font-black text-dash-text tracking-tight">
                     <Counter
                       target={item.value}
                       suffix={item.suffix}
                       decimals={item.decimals}
                     />
                   </div>
-                  <p className="text-gray-500 text-xs mt-2 font-medium leading-relaxed">
+                  <p className="text-dash-secondary text-xs mt-2 font-semibold leading-relaxed">
                     {item.description}
                   </p>
                 </div>

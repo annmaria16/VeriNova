@@ -649,10 +649,10 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: -50, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#08120F] border border-dash-primary/40 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md"
+              className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-dash-sidebar border border-dash-primary/30 text-dash-text px-5 py-3.5 rounded-xl shadow-xl flex items-center gap-3 backdrop-blur-md"
             >
               <ShieldCheck className="text-dash-primary w-5 h-5 animate-pulse" />
-              <span className="text-xs font-bold">{toastMessage}</span>
+              <span className="text-xs font-black">{toastMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -665,21 +665,21 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-dash-sidebar border border-dash-primary/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden"
+              className="bg-dash-card border border-dash-border rounded-2xl p-6 shadow-xl relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-dash-primary to-[#22D3EE] transition-all duration-300" style={{ width: `${verificationStep}%` }}></div>
+              <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-dash-primary to-[#FF8C42] transition-all duration-300" style={{ width: `${verificationStep}%` }}></div>
               
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3 text-left">
                   {verifyingTask.status === "Needs Clarification" ? (
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse" />
-                      <h3 className="font-bold text-white text-sm">Execution Suspended - Clarification Required</h3>
+                      <h3 className="font-black text-dash-text text-sm">Execution Suspended - Clarification Required</h3>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-5 h-5 text-dash-primary animate-spin" />
-                      <h3 className="font-bold text-white text-sm">AI Verification Engine Running</h3>
+                      <h3 className="font-black text-dash-text text-sm">AI Verification Engine Running</h3>
                     </div>
                   )}
                 </div>
@@ -699,17 +699,17 @@ export default function Dashboard() {
                   const isCurrent = (verificationStep < st.stepVal) && (i === 0 || verificationStep >= [15, 35, 55, 75, 100][i-1]);
                   return (
                     <div key={i} className="flex flex-col items-center">
-                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold ${isActive ? "bg-dash-primary text-dash-bg shadow-[0_0_8px_rgba(139,92,246,0.6)]" : isCurrent ? "bg-[#22D3EE] text-dash-bg animate-pulse" : "bg-dash-card border border-dash-border"}`}>
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold ${isActive ? "bg-dash-primary text-white shadow-[0_0_8px_rgba(255,107,0,0.3)]" : isCurrent ? "bg-[#FF8C42] text-white animate-pulse" : "bg-dash-bg border border-dash-border"}`}>
                         {isActive && "✓"}
                       </div>
-                      <span className={`text-[9px] mt-1.5 font-bold uppercase tracking-wider ${isActive ? "text-dash-primary" : isCurrent ? "text-[#22D3EE]" : "text-dash-secondary"}`}>{st.label}</span>
+                      <span className={`text-[9px] mt-1.5 font-bold uppercase tracking-wider ${isActive ? "text-dash-primary" : isCurrent ? "text-[#FF8C42]" : "text-dash-secondary"}`}>{st.label}</span>
                     </div>
                   );
                 })}
               </div>
 
               {/* Terminal logs timeline panel */}
-              <div className="bg-black/90 rounded-xl p-4 font-mono text-[11px] text-[#22D3EE] h-32 overflow-y-auto space-y-1.5 scrollbar-thin text-left border border-dash-border/60">
+              <div className="bg-dash-bg border border-dash-border/60 rounded-xl p-4 font-mono text-[11px] text-[#22D3EE] h-32 overflow-y-auto space-y-1.5 scrollbar-thin text-left">
                 {verificationLogs.map((log, index) => (
                   <div key={index} className="leading-relaxed font-semibold">{log}</div>
                 ))}
@@ -723,13 +723,13 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 p-5 bg-dash-card/25 border border-yellow-500/30 rounded-xl text-left"
+                  className="mt-4 p-5 bg-dash-card border border-amber-500/20 rounded-xl text-left"
                 >
-                  <h4 className="text-xs font-black text-yellow-500 uppercase tracking-wider mb-2">
+                  <h4 className="text-xs font-black text-amber-500 uppercase tracking-wider mb-2">
                     Action Required: Provide {clarificationFieldName.replace("_", " ").toUpperCase()}
                   </h4>
-                  <p className="text-[11px] text-dash-secondary mb-4 leading-normal font-semibold">
-                    The AI Orchestrator requires this parameter to execute the service endpoint. Please input or choose an option:
+                  <p className="text-[11px] text-dash-secondary mb-4 leading-normal font-bold">
+                    The AI Assistant requires this parameter to execute the service endpoint. Please input or choose an option:
                   </p>
 
                   <form onSubmit={handleClarificationSubmit} className="space-y-4">
@@ -741,7 +741,7 @@ export default function Dashboard() {
                             type="button"
                             key={t}
                             onClick={() => setClarificationValue(t)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === t ? "bg-dash-primary/20 border-dash-primary text-white" : "border-dash-border hover:border-dash-secondary text-dash-secondary"}`}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === t ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
                           >
                             {t}
                           </button>
@@ -756,7 +756,7 @@ export default function Dashboard() {
                             type="button"
                             key={th}
                             onClick={() => setClarificationValue(th)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === th ? "bg-dash-primary/20 border-dash-primary text-white" : "border-dash-border hover:border-dash-secondary text-dash-secondary"}`}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === th ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
                           >
                             {th}
                           </button>
@@ -771,7 +771,7 @@ export default function Dashboard() {
                             type="button"
                             key={st}
                             onClick={() => setClarificationValue(st)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === st ? "bg-dash-primary/20 border-dash-primary text-white" : "border-dash-border hover:border-dash-secondary text-dash-secondary"}`}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === st ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
                           >
                             {st}
                           </button>
@@ -788,12 +788,12 @@ export default function Dashboard() {
                           setClarificationError(null);
                         }}
                         placeholder={`Enter ${clarificationFieldName.replace("_", " ")}`}
-                        className="flex-1 bg-black/40 border border-dash-border/60 rounded-xl px-4 py-2.5 text-xs text-white placeholder-dash-secondary focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30"
+                        className="flex-grow bg-dash-bg border border-dash-border rounded-xl px-4 py-2.5 text-xs text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary/60 font-semibold"
                         required
                       />
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-dash-bg font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer transition-colors"
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#FF6B00] to-[#FF7F32] hover:from-[#FF7F32] hover:to-[#FF8C42] text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md transition-colors"
                       >
                         Resume Run
                       </button>
@@ -802,7 +802,7 @@ export default function Dashboard() {
                       <motion.p
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-red-400 text-xs font-semibold mt-2 flex items-center gap-1.5"
+                        className="text-red-500 text-xs font-semibold mt-2 flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -936,11 +936,11 @@ export default function Dashboard() {
                   {activeEvidenceModal.type === "logs" && <FileCode className="w-5 h-5 text-dash-primary" />}
                   {activeEvidenceModal.type === "image" && <ImageIcon className="w-5 h-5 text-blue-400" />}
                   {activeEvidenceModal.type === "video" && <Video className="w-5 h-5 text-pink-400" />}
-                  <span className="font-black text-white text-sm truncate max-w-[200px]">{activeEvidenceModal.name}</span>
+                  <span className="font-black text-dash-text text-sm truncate max-w-[200px]">{activeEvidenceModal.name}</span>
                 </div>
                 <button
                   onClick={() => setActiveEvidenceModal(null)}
-                  className="text-dash-secondary hover:text-white p-1 rounded hover:bg-dash-card/40 cursor-pointer"
+                  className="text-dash-secondary hover:text-dash-primary p-1 rounded hover:bg-dash-card/40 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -953,7 +953,7 @@ export default function Dashboard() {
               <div className="p-4 border-t border-dash-border/40 bg-dash-card/10 text-right">
                 <button
                   onClick={() => setActiveEvidenceModal(null)}
-                  className="px-4 py-2 bg-dash-primary hover:bg-dash-hover text-dash-bg font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-dash-primary hover:bg-dash-hover text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer"
                 >
                   Close Footprint
                 </button>
@@ -972,7 +972,7 @@ export default function Dashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setVerificationResultDetails(null)}
-              className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             />
 
             <motion.div
@@ -980,19 +980,19 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25 }}
-              className="bg-dash-sidebar border border-dash-border rounded-3xl w-full max-w-xl overflow-hidden shadow-[0_0_50px_rgba(139,92,246,0.35)] relative z-10 flex flex-col p-6 text-left border-neon-glow"
+              className="bg-dash-sidebar border border-dash-border rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl relative z-10 flex flex-col p-6 text-left"
             >
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-dash-border/40 mb-5">
+              <div className="flex items-center justify-between pb-4 border-b border-dash-border mb-5">
                 <div>
-                  <h3 className="font-black text-white text-base">Verification Report Scorecard</h3>
+                  <h3 className="font-black text-dash-text text-base">Verification Report Scorecard</h3>
                   <span className="text-[10px] text-dash-secondary mt-0.5 block font-bold uppercase tracking-wider">
                     Task ID: {verificationResultDetails.task_id}
                   </span>
                 </div>
                 <button
                   onClick={() => setVerificationResultDetails(null)}
-                  className="text-dash-secondary hover:text-white p-1 rounded hover:bg-dash-card/45 cursor-pointer"
+                  className="text-dash-secondary hover:text-dash-primary p-1 rounded hover:bg-dash-card/45 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1001,14 +1001,21 @@ export default function Dashboard() {
               {/* Grid content */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 overflow-y-auto max-h-[450px] pr-1">
                 {/* Left side: Circular gauge */}
-                <div className="md:col-span-5 flex flex-col items-center justify-center bg-black/35 rounded-2xl p-4 border border-dash-border/30">
+                <div className="md:col-span-5 flex flex-col items-center justify-center bg-dash-bg/40 rounded-2xl p-4 border border-dash-border">
                   <div className="relative w-28 h-28 flex items-center justify-center select-none">
                     <svg className="w-full h-full transform -rotate-90">
+                      <defs>
+                        <linearGradient id="scorecardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#8B5CF6" />
+                          <stop offset="50%" stopColor="#EC4899" />
+                          <stop offset="100%" stopColor="#22D3EE" />
+                        </linearGradient>
+                      </defs>
                       <circle
                         cx="56"
                         cy="56"
                         r="48"
-                        stroke="rgba(255,255,255,0.05)"
+                        stroke="rgba(255,255,255,0.04)"
                         strokeWidth="8"
                         fill="transparent"
                       />
@@ -1016,13 +1023,7 @@ export default function Dashboard() {
                         cx="56"
                         cy="56"
                         r="48"
-                        stroke={
-                          verificationResultDetails.confidence_score >= 80
-                            ? "#8B5CF6"
-                            : verificationResultDetails.confidence_score >= 40
-                            ? "#F59E0B"
-                            : "#EF4444"
-                        }
+                        stroke="url(#scorecardGradient)"
                         strokeWidth="8"
                         fill="transparent"
                         strokeDasharray={2 * Math.PI * 48}
@@ -1032,17 +1033,22 @@ export default function Dashboard() {
                             2 * Math.PI * 48 * (1 - verificationResultDetails.confidence_score / 100)
                         }}
                         transition={{ duration: 1.2, ease: "easeOut" }}
+                        strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute flex flex-col items-center">
-                      <span className="text-xl font-black text-white">{verificationResultDetails.confidence_score}%</span>
-                      <span className="text-[8px] font-black text-dash-secondary uppercase tracking-widest mt-0.5">Confidence</span>
+                      <span className="text-2xl font-black text-dash-text tracking-tight">{verificationResultDetails.confidence_score}%</span>
+                      <span className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${
+                        verificationResultDetails.confidence_score >= 80 ? "text-[#22D3EE]" : "text-[#EF4444]"
+                      }`}>
+                        {verificationResultDetails.confidence_score >= 80 ? "VERIFIED" : "FAILED"}
+                      </span>
                     </div>
                   </div>
 
                   <span className={`mt-4 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                     verificationResultDetails.status === "Verified"
-                      ? "bg-green-500/10 border-green-500/20 text-[#10B981]"
+                      ? "bg-green-500/10 border-green-500/20 text-[#22C55E]"
                       : verificationResultDetails.status === "Needs Review"
                       ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-500"
                       : "bg-red-500/10 border-red-500/20 text-red-400"
@@ -1059,14 +1065,14 @@ export default function Dashboard() {
                     {verificationResultDetails.evidence && verificationResultDetails.evidence.map((ev: any) => {
                       const isPassed = ev.type === "logs" || (ev.type === "api_response" && ["refunded", "sent", "confirmed", "updated"].includes(ev.data?.status)) || (ev.type === "database_check" && (ev.data?.success || ev.data?.match));
                       return (
-                        <div key={ev.id} className="flex items-start gap-3 bg-black/20 p-2.5 rounded-xl border border-dash-border/40 text-xs">
+                        <div key={ev.id} className="flex items-start gap-3 bg-dash-bg/40 p-2.5 rounded-xl border border-dash-border text-xs">
                           {isPassed ? (
-                            <CheckCircle2 className="w-4 h-4 text-dash-primary mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                           ) : (
                             <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
                           )}
                           <div className="min-w-0">
-                            <span className="font-bold text-white block capitalize">{ev.type.replace("_", " ")}</span>
+                            <span className="font-bold text-dash-text block capitalize">{ev.type.replace("_", " ")}</span>
                             <p className="text-[10px] text-dash-secondary font-semibold truncate leading-relaxed mt-0.5">
                               {ev.type === "api_response" ? `Service: ${ev.data?.service}. Status: ${ev.data?.status}` : ev.data?.details || "Logs verification successful."}
                             </p>
@@ -1079,16 +1085,16 @@ export default function Dashboard() {
               </div>
 
               {/* Summary Description Box */}
-              <div className="mt-5 p-3.5 bg-black/40 border border-dash-border/50 rounded-2xl text-[11px] leading-relaxed text-dash-secondary font-semibold">
-                <span className="font-black text-white block mb-1">Verification Summary</span>
+              <div className="mt-5 p-3.5 bg-dash-card/30 border border-dash-border rounded-2xl text-[11px] leading-relaxed text-dash-secondary font-bold">
+                <span className="font-black text-dash-text block mb-1">Verification Summary</span>
                 {verificationResultDetails.summary}
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-6 flex justify-between gap-3 pt-4 border-t border-dash-border/40 bg-dash-card/10">
+              <div className="mt-6 flex justify-between gap-3 pt-4 border-t border-dash-border bg-dash-card/10">
                 <button
                   onClick={() => handleDownloadReport(verificationResultDetails.task_id)}
-                  className="px-4 py-2.5 bg-dash-card border border-dash-border/80 hover:border-dash-primary text-white hover:text-white rounded-xl text-xs uppercase font-black tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2.5 bg-dash-bg border border-dash-border hover:border-dash-primary text-dash-text hover:text-dash-primary rounded-xl text-xs uppercase font-black tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Report (PDF)</span>
@@ -1096,7 +1102,7 @@ export default function Dashboard() {
                 
                 <button
                   onClick={() => setVerificationResultDetails(null)}
-                  className="px-5 py-2.5 bg-dash-primary hover:bg-dash-hover text-dash-bg font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                  className="px-5 py-2.5 bg-dash-primary hover:bg-dash-hover text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer"
                 >
                   Done
                 </button>
@@ -1174,8 +1180,8 @@ function DashboardHomeView({
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-dash-card border border-dash-border/60 rounded-2xl p-5 space-y-4 animate-pulse">
-              <div className="h-4 bg-[#08120F]/30 rounded w-1/2"></div>
-              <div className="h-8 bg-[#08120F]/40 rounded w-2/3"></div>
+              <div className="h-4 bg-dash-bg/60 rounded w-1/2"></div>
+              <div className="h-8 bg-dash-bg/70 rounded w-2/3"></div>
             </div>
           ))}
         </div>
@@ -1203,7 +1209,7 @@ function DashboardHomeView({
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
         <div>
-          <h2 className="text-2xl font-black text-white leading-tight">
+          <h2 className="text-2xl font-black text-dash-text leading-tight">
             Welcome back, {userFullName} 👋
           </h2>
           <p className="text-dash-secondary text-xs sm:text-sm mt-1.5 font-semibold">
@@ -1287,7 +1293,7 @@ function DashboardHomeView({
         <div className="lg:col-span-9 bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl flex flex-col backdrop-blur-md">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-black text-white text-sm tracking-tight">Recent Tasks</h3>
+              <h3 className="font-black text-dash-text text-sm tracking-tight">Recent Tasks</h3>
             </div>
             <button
               onClick={() => setActiveModule("my-tasks")}
@@ -1314,7 +1320,7 @@ function DashboardHomeView({
                   className="w-full flex items-center justify-between p-2 hover:bg-dash-card/50 rounded-xl transition-all group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#08120F] border border-dash-border/60 rounded-lg group-hover:border-dash-primary/30 transition-colors">
+                    <div className="p-2 bg-dash-bg border border-dash-border/60 rounded-lg group-hover:border-dash-primary/30 transition-colors">
                       {qa.icon}
                     </div>
                     <div className="text-left leading-none">
@@ -1322,7 +1328,7 @@ function DashboardHomeView({
                       <span className="text-[9px] text-dash-secondary mt-1 block font-semibold">{qa.desc}</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-dash-secondary group-hover:text-white" />
+                  <ChevronRight className="w-3.5 h-3.5 text-dash-secondary group-hover:text-dash-primary" />
                 </button>
               ))}
             </div>
@@ -1335,35 +1341,35 @@ function DashboardHomeView({
               <button onClick={() => setActiveModule("verification-history")} className="text-[10px] font-bold text-dash-primary hover:text-dash-hover uppercase">View All</button>
             </div>
             <div className="bg-dash-sidebar/25 border border-dash-border/60 rounded-2xl p-4.5 space-y-3 text-xs">
-              <div className="flex items-center justify-between text-white font-medium">
+              <div className="flex items-center justify-between text-dash-text font-medium">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                   <span>Task #1248 completed</span>
                 </div>
                 <span className="text-[9px] text-dash-secondary">2 min ago</span>
               </div>
-              <div className="flex items-center justify-between text-white font-medium">
+              <div className="flex items-center justify-between text-dash-text font-medium">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                   <span>Evidence uploaded</span>
                 </div>
                 <span className="text-[9px] text-dash-secondary">5 min ago</span>
               </div>
-              <div className="flex items-center justify-between text-white font-medium">
+              <div className="flex items-center justify-between text-dash-text font-medium">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                   <span>AI model updated</span>
                 </div>
                 <span className="text-[9px] text-dash-secondary">1 hr ago</span>
               </div>
-              <div className="flex items-center justify-between text-white font-medium">
+              <div className="flex items-center justify-between text-dash-text font-medium">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                   <span>New report generated</span>
                 </div>
                 <span className="text-[9px] text-dash-secondary">2 hr ago</span>
               </div>
-              <div className="flex items-center justify-between text-white font-medium">
+              <div className="flex items-center justify-between text-dash-text font-medium">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                   <span>System backup completed</span>
@@ -1380,7 +1386,7 @@ function DashboardHomeView({
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-black text-white">AI Assistant</h4>
+                <h4 className="text-xs font-black text-dash-text">AI Assistant</h4>
               </div>
             </div>
             <p className="text-[10px] text-dash-secondary font-bold leading-normal text-left">
@@ -1388,7 +1394,7 @@ function DashboardHomeView({
             </p>
             <button
               onClick={() => triggerToast("AI dialogue interface coming soon...")}
-              className="w-full py-2 bg-dash-primary/5 hover:bg-dash-primary/10 border border-dash-primary/20 hover:border-dash-primary text-dash-primary hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full py-2 bg-dash-primary/5 hover:bg-dash-primary/10 border border-dash-primary/20 hover:border-dash-primary text-dash-primary hover:text-dash-primary rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>+ Ask AI Assistant</span>
             </button>
@@ -1402,7 +1408,7 @@ function DashboardHomeView({
         <div className="lg:col-span-8 bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl flex flex-col backdrop-blur-md text-left animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-black text-white text-sm tracking-tight">Recent Notifications</h3>
+              <h3 className="font-black text-dash-text text-sm tracking-tight">Recent Notifications</h3>
               <p className="text-[11px] text-dash-secondary mt-0.5 font-semibold">Latest system updates and relays</p>
             </div>
             <button
@@ -1421,7 +1427,7 @@ function DashboardHomeView({
                 <div key={n.id} className="flex items-start gap-2.5 text-white">
                   <span className="text-dash-primary font-black mt-0.5">•</span>
                   <div className="flex-1">
-                    <span className="font-bold text-white block sm:inline">{n.title}:</span>{" "}
+                    <span className="font-bold text-dash-text block sm:inline">{n.title}:</span>{" "}
                     <span className="text-dash-secondary font-semibold">{n.message}</span>
                   </div>
                 </div>
@@ -1432,7 +1438,7 @@ function DashboardHomeView({
 
         {/* System Status (Dynamic connections) */}
         <div className="lg:col-span-4 bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl flex flex-col backdrop-blur-md text-left animate-fade-in">
-          <h3 className="font-black text-white text-sm tracking-tight mb-4.5">System Status</h3>
+          <h3 className="font-black text-dash-text text-sm tracking-tight mb-4.5">System Status</h3>
           <div className="space-y-3.5 text-xs font-black select-none">
             <div className="flex items-center gap-2.5">
               <span className={`w-2.5 h-2.5 rounded-full ${apiStatus === "Online" ? "bg-[#10B981] shadow-[0_0_8px_#10B981]" : apiStatus === "Checking" ? "bg-yellow-400" : "bg-red-500"}`} />
@@ -1457,7 +1463,7 @@ function DashboardHomeView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="w-full bg-[#08120F]/55 border border-dash-primary/30 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs shadow-lg shadow-dash-primary/5 text-left relative overflow-hidden"
+            className="w-full bg-dash-card border border-dash-primary/30 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs shadow-lg shadow-dash-primary/5 text-left relative overflow-hidden"
           >
             {/* Wave shape overlay decoration */}
             <div className="absolute inset-y-0 right-10 w-44 pointer-events-none opacity-20 bg-gradient-to-r from-transparent to-dash-primary/10 select-none hidden md:block" />
@@ -1467,7 +1473,7 @@ function DashboardHomeView({
                 <Award className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-black text-white block">AI Insight</span>
+                <span className="font-black text-dash-text block">AI Insight</span>
                 <span className="text-dash-secondary font-semibold mt-0.5 block leading-normal">
                   Your verification accuracy improved by 3.2% this week. Keep up the excellent work! 🚀
                 </span>
@@ -1476,7 +1482,7 @@ function DashboardHomeView({
 
             <button
               onClick={() => setInsightVisible(false)}
-              className="text-dash-secondary hover:text-white p-1 hover:bg-dash-card/50 rounded-lg cursor-pointer flex-shrink-0"
+              className="text-dash-secondary hover:text-dash-primary p-1 hover:bg-dash-card/50 rounded-lg cursor-pointer flex-shrink-0"
               title="Close Insight"
             >
               <X className="w-4.5 h-4.5" />
@@ -1507,7 +1513,7 @@ function AnalyticsView({
   return (
     <div className="space-y-6 text-left">
       <div>
-        <h3 className="text-lg font-black text-white leading-tight">Verification Analytics</h3>
+        <h3 className="text-lg font-black text-dash-text leading-tight">Verification Analytics</h3>
         <p className="text-xs text-dash-secondary mt-1">Detailed mathematical trends on node audits and outcome integrity scans.</p>
       </div>
 
@@ -1606,7 +1612,7 @@ function NewVerificationView({
     <div className="max-w-3xl mx-auto space-y-6 text-left animate-fade-in">
       {/* Title */}
       <div>
-        <h3 className="text-lg font-black text-white leading-tight">Submit New AI Task</h3>
+        <h3 className="text-lg font-black text-dash-text leading-tight">Submit New AI Task</h3>
         <p className="text-xs text-dash-secondary mt-1">Specify a system action in plain language. The AI agent will execute the service and auto-verify evidence.</p>
       </div>
 
@@ -1625,7 +1631,7 @@ function NewVerificationView({
             >
               <span className="text-xl">{p.icon}</span>
               <div>
-                <span className="text-xs font-bold text-white block">{p.title}</span>
+                <span className="text-xs font-bold text-dash-text block">{p.title}</span>
                 <p className="text-[10px] text-dash-secondary font-semibold mt-1.5 leading-normal">{p.text}</p>
                 <span className="text-[8px] text-dash-primary uppercase tracking-wider block mt-2 font-bold">{p.desc}</span>
               </div>
@@ -1648,7 +1654,7 @@ function NewVerificationView({
               if (e.target.value.trim()) setError("");
             }}
             placeholder="Type your instruction, e.g. 'Refund ₹500 for order #pay-4567' or choose a quick-select card above."
-            className={`w-full bg-[#08120F]/65 border rounded-xl px-4 py-3.5 text-xs text-white placeholder-dash-secondary focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold leading-relaxed ${
+            className={`w-full bg-dash-bg border rounded-xl px-4 py-3.5 text-xs text-dash-text placeholder-dash-secondary focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold leading-relaxed ${
               error ? "border-red-500" : "border-dash-border/60"
             }`}
           />
@@ -1695,7 +1701,7 @@ function MyTasksView({
   return (
     <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md text-left animate-fade-in">
       <div>
-        <h3 className="text-lg font-black text-white leading-tight">Tasks Registry Directory</h3>
+        <h3 className="text-lg font-black text-dash-text leading-tight">Tasks Registry Directory</h3>
         <p className="text-xs text-dash-secondary mt-1">Full database registry of outcome verifications.</p>
       </div>
 
@@ -1725,7 +1731,7 @@ function VerificationHistoryView({
     <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md text-left animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-white leading-tight">Audit Trail History</h3>
+          <h3 className="text-lg font-black text-dash-text leading-tight">Audit Trail History</h3>
           <p className="text-xs text-dash-secondary mt-1">Full sequential history of AI outcome certifications.</p>
         </div>
         <button
@@ -1757,14 +1763,14 @@ function AiEvidenceView({
   return (
     <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md text-left animate-fade-in">
       <div>
-        <h3 className="text-lg font-black text-white leading-tight">Evidence Archive</h3>
+        <h3 className="text-lg font-black text-dash-text leading-tight">Evidence Archive</h3>
         <p className="text-xs text-dash-secondary mt-1">Footprint log archives of successful validation outcomes.</p>
       </div>
 
       {evidenceList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-14 text-center border border-dashed border-dash-border/60 rounded-2xl bg-dash-card/5">
           <ImageIcon className="w-10 h-10 text-dash-secondary opacity-40 mb-3" />
-          <h4 className="text-sm font-bold text-white">No evidence files stored.</h4>
+          <h4 className="text-sm font-bold text-dash-text">No evidence files stored.</h4>
           <p className="text-xs text-dash-secondary mt-1">Evidence logs will populate here once outcome validation checks pass.</p>
         </div>
       ) : (
@@ -1776,19 +1782,19 @@ function AiEvidenceView({
               className="bg-dash-card/20 hover:bg-dash-sidebar/40 border border-dash-border/50 hover:border-dash-primary/30 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all duration-200"
             >
               <div className="flex items-center gap-3">
-                <div className="bg-[#08120F] border border-dash-border/40 p-2.5 rounded-lg text-dash-secondary">
+                <div className="bg-dash-bg border border-dash-border/40 p-2.5 rounded-lg text-dash-secondary">
                   {ev.name.endsWith(".pdf") && <FileText className="w-5 h-5 text-red-400" />}
                   {ev.name.endsWith(".png") && <ImageIcon className="w-5 h-5 text-blue-400" />}
                   {ev.name.endsWith(".txt") && <FileCode className="w-5 h-5 text-dash-primary" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-white truncate max-w-[150px]">{ev.name}</h4>
+                  <h4 className="text-xs font-bold text-dash-text truncate max-w-[150px]">{ev.name}</h4>
                   <span className="text-[10px] text-dash-secondary block mt-0.5">
                     {ev.size} • {ev.status}
                   </span>
                 </div>
               </div>
-              <Eye className="w-4 h-4 text-dash-secondary hover:text-white" />
+              <Eye className="w-4 h-4 text-dash-secondary hover:text-dash-primary" />
             </div>
           ))}
         </div>
@@ -1821,14 +1827,14 @@ function ReportsView({
     <div className="max-w-2xl mx-auto space-y-8 text-left animate-fade-in">
       <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 backdrop-blur-md">
         <div>
-          <h3 className="text-lg font-black text-white leading-tight">Generate Verification Reports</h3>
+          <h3 className="text-lg font-black text-dash-text leading-tight">Generate Verification Reports</h3>
           <p className="text-xs text-dash-secondary mt-1">Export analytical files compiled from database outcome checks.</p>
         </div>
 
-        <div className="bg-[#08120F]/65 p-4 rounded-xl border border-dash-border/50 flex justify-between text-center gap-4 divide-x divide-dash-border/30">
+        <div className="bg-dash-bg p-4 rounded-xl border border-dash-border/50 flex justify-between text-center gap-4 divide-x divide-dash-border/30">
           <div className="flex-1">
             <span className="text-[10px] font-bold text-dash-secondary uppercase tracking-wider block">Tasks Logged</span>
-            <span className="text-lg font-black text-white block mt-1">{totalTasksCount}</span>
+            <span className="text-lg font-black text-dash-text block mt-1">{totalTasksCount}</span>
           </div>
           <div className="flex-1">
             <span className="text-[10px] font-bold text-dash-secondary uppercase tracking-wider block">Verified Outcomes</span>
@@ -1849,7 +1855,7 @@ function ReportsView({
                 onClick={() => setSelectedFormat(format)}
                 className={`py-3.5 border rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${selectedFormat === format
                   ? "bg-dash-primary/10 border-dash-primary/45 text-dash-primary"
-                  : "bg-[#08120F]/40 border-dash-border/60 text-dash-secondary hover:text-white"
+                  : "bg-dash-bg/70 border-dash-border/60 text-dash-secondary hover:text-dash-primary"
                   }`}
               >
                 {format === "PDF" && <FileText className="w-4 h-4 inline-block mr-1.5 align-middle" />}
@@ -1872,7 +1878,7 @@ function ReportsView({
 
       {/* Generated Reports List */}
       <div className="bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 sm:p-8 shadow-xl space-y-4 backdrop-blur-md">
-        <h3 className="text-md font-black text-white">Recent Generated Reports</h3>
+        <h3 className="text-md font-black text-dash-text">Recent Generated Reports</h3>
         {isLoading ? (
           <div className="space-y-3 animate-pulse">
             <div className="h-10 bg-dash-primary/10 rounded-xl w-full"></div>
@@ -1881,7 +1887,7 @@ function ReportsView({
         ) : reports.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center bg-dash-card/5 border border-dashed border-dash-border/60 rounded-xl">
             <FileText className="w-10 h-10 text-dash-secondary opacity-40 mb-2" />
-            <h4 className="text-sm font-bold text-white">No reports generated yet.</h4>
+            <h4 className="text-sm font-bold text-dash-text">No reports generated yet.</h4>
             <p className="text-xs text-dash-secondary mt-1">Request a download format above to populate this catalog.</p>
           </div>
         ) : (
@@ -1925,7 +1931,7 @@ function NotificationsView({
     <div className="max-w-3xl mx-auto bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-md text-left space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-dash-border/40">
         <div>
-          <h3 className="text-lg font-black text-white leading-tight">Notification Hub</h3>
+          <h3 className="text-lg font-black text-dash-text leading-tight">Notification Hub</h3>
           <p className="text-xs text-dash-secondary mt-1">Real-time alerts, verification results, and server status warning relays.</p>
         </div>
 
@@ -1959,7 +1965,7 @@ function NotificationsView({
                 {notif.type === "info" && <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />}
 
                 <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-dash-text flex items-center gap-2">
                     <span>{notif.title}</span>
                     {!notif.read && (
                       <span className="w-1.5 h-1.5 bg-dash-primary rounded-full" />
@@ -2122,7 +2128,7 @@ function ProfileView({
 
   return (
     <div className="max-w-2xl mx-auto bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-md text-left animate-fade-in">
-      <h2 className="text-xl font-black text-white mb-6 uppercase tracking-wider">Profile</h2>
+      <h2 className="text-xl font-black text-dash-text mb-6 uppercase tracking-wider">Profile</h2>
 
       <div className="flex flex-col items-center text-center pb-6 border-b border-dash-border/40">
         {/* Photo Avatar block */}
@@ -2152,7 +2158,7 @@ function ProfileView({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isSaving}
-          className="mt-4 px-4 py-2 rounded-xl border border-dash-border/80 hover:border-dash-primary text-dash-secondary hover:text-white text-xs uppercase font-black tracking-wider transition-all duration-200 cursor-pointer bg-dash-sidebar/40 disabled:opacity-50"
+          className="mt-4 px-4 py-2 rounded-xl border border-dash-border/80 hover:border-dash-primary text-dash-secondary hover:text-dash-primary text-xs uppercase font-black tracking-wider transition-all duration-200 cursor-pointer bg-dash-sidebar/40 disabled:opacity-50"
         >
           Change Photo
         </button>
@@ -2166,7 +2172,7 @@ function ProfileView({
             value={fullname}
             onChange={(e) => setFullname(e.target.value)}
             disabled={isSaving}
-            className="w-full bg-[#08120F]/65 border border-dash-border/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-dash-primary/50 transition-all font-semibold disabled:opacity-60"
+            className="w-full bg-dash-bg border border-dash-border/60 rounded-xl px-4 py-3 text-sm text-dash-text focus:outline-none focus:border-dash-primary/50 transition-all font-semibold disabled:opacity-60"
             placeholder="Your Full Name"
             required
           />
@@ -2181,7 +2187,7 @@ function ProfileView({
               type="email"
               value={user?.email || ""}
               disabled
-              className="w-full bg-[#08120F]/30 border border-dash-border/30 rounded-xl pl-4 pr-24 py-3 text-sm text-dash-secondary/70 font-semibold cursor-not-allowed"
+              className="w-full bg-dash-bg/60 border border-dash-border/30 rounded-xl pl-4 pr-24 py-3 text-sm text-dash-secondary/70 font-semibold cursor-not-allowed"
             />
             <div className="absolute right-3 flex items-center gap-1 text-dash-primary font-bold text-[10px] uppercase tracking-wider bg-dash-primary/10 border border-dash-primary/20 px-2 py-0.5 rounded-lg">
               <Lock className="w-3 h-3" />
@@ -2192,7 +2198,7 @@ function ProfileView({
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-black text-dash-secondary uppercase tracking-wider">Joined</label>
-          <div className="bg-[#08120F]/30 border border-dash-border/30 rounded-xl px-4 py-3 text-sm text-dash-secondary/70 font-semibold cursor-not-allowed">
+          <div className="bg-dash-bg/60 border border-dash-border/30 rounded-xl px-4 py-3 text-sm text-dash-secondary/70 font-semibold cursor-not-allowed">
             {formatJoinedDate(user?.created_at)}
           </div>
         </div>
@@ -2243,7 +2249,7 @@ function SettingsView({
     <div className="max-w-2xl mx-auto bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-md space-y-6 text-left animate-fade-in">
       {/* Appearance */}
       <div className="space-y-3 pb-6 border-b border-dash-border/40">
-        <h4 className="text-xs font-black text-white uppercase tracking-wider">Appearance</h4>
+        <h4 className="text-xs font-black text-dash-text uppercase tracking-wider">Appearance</h4>
         <div className="space-y-2">
           <label className="text-xs font-bold text-dash-secondary">Theme</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2254,11 +2260,11 @@ function SettingsView({
               }}
               className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${theme === "dark"
                   ? "border-dash-primary bg-dash-primary/5"
-                  : "border-dash-border/60 bg-[#08120F]/40 hover:bg-[#08120F]"
+                  : "border-dash-border/60 bg-dash-bg/70 hover:bg-dash-bg"
                 }`}
             >
               <div>
-                <span className="text-xs font-black text-white block">🌙 Dark Mode</span>
+                <span className="text-xs font-black text-dash-text block">🌙 Dark Mode</span>
                 <span className="text-[10px] text-dash-secondary mt-1 block">Classic dark workspace styling</span>
               </div>
               {theme === "dark" && (
@@ -2272,11 +2278,11 @@ function SettingsView({
               }}
               className={`p-4 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${theme === "light"
                   ? "border-dash-primary bg-dash-primary/5"
-                  : "border-dash-border/60 bg-[#08120F]/40 hover:bg-[#08120F]"
+                  : "border-dash-border/60 bg-dash-bg/70 hover:bg-dash-bg"
                 }`}
             >
               <div>
-                <span className="text-xs font-black text-white block">☀️ Light Mode</span>
+                <span className="text-xs font-black text-dash-text block">☀️ Light Mode</span>
                 <span className="text-[10px] text-dash-secondary mt-1 block">Clean light workspace styling</span>
               </div>
               {theme === "light" && (
@@ -2289,14 +2295,14 @@ function SettingsView({
 
       {/* Language */}
       <div className="space-y-3 pb-6 border-b border-dash-border/40 flex flex-col gap-1.5">
-        <label className="text-xs font-black text-white uppercase tracking-wider block">Language Settings</label>
+        <label className="text-xs font-black text-dash-text uppercase tracking-wider block">Language Settings</label>
         <select
           value={settings.language}
           onChange={(e) => {
             setSettings({ ...settings, language: e.target.value });
             triggerToast(`Language switched to ${e.target.value}`);
           }}
-          className="w-full bg-[#08120F]/65 border border-dash-border/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-dash-primary cursor-pointer font-bold"
+          className="w-full bg-dash-bg border border-dash-border/60 rounded-xl px-4 py-3 text-sm text-dash-text focus:outline-none focus:border-dash-primary cursor-pointer font-bold"
         >
           <option>English</option>
           <option>Spanish</option>
@@ -2308,7 +2314,7 @@ function SettingsView({
 
       {/* API Key management */}
       <div className="space-y-3 pb-6 border-b border-dash-border/40">
-        <h4 className="text-xs font-black text-white uppercase tracking-wider">API Authentication Credentials</h4>
+        <h4 className="text-xs font-black text-dash-text uppercase tracking-wider">API Authentication Credentials</h4>
         <p className="text-xs text-dash-secondary font-semibold">Provide this credential block to CLI or SDK deployment environments.</p>
 
         <div className="flex items-center gap-2 mt-3">
@@ -2317,7 +2323,7 @@ function SettingsView({
           </div>
           <button
             onClick={copyToClipboard}
-            className="p-3.5 bg-dash-card border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-white rounded-xl transition-all cursor-pointer"
+            className="p-3.5 bg-dash-card border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-dash-primary rounded-xl transition-all cursor-pointer"
             title="Copy API Key"
           >
             {copied ? <Check className="w-4 h-4 text-dash-primary" /> : <Copy className="w-4 h-4" />}
@@ -2334,7 +2340,7 @@ function SettingsView({
 
       {/* Alert settings */}
       <div className="space-y-4">
-        <h4 className="text-xs font-black text-white uppercase tracking-wider">Alert Preferences</h4>
+        <h4 className="text-xs font-black text-dash-text uppercase tracking-wider">Alert Preferences</h4>
 
         <div className="space-y-3">
           <CheckboxAlertItem
@@ -2388,10 +2394,10 @@ function CheckboxAlertItem({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4.5 h-4.5 rounded border-dash-border/60 text-dash-primary focus:ring-0 focus:ring-offset-0 bg-[#08120F]/65 cursor-pointer accent-dash-primary mt-0.5"
+        className="w-4.5 h-4.5 rounded border-dash-border/60 text-dash-primary focus:ring-0 focus:ring-offset-0 bg-dash-bg cursor-pointer accent-dash-primary mt-0.5"
       />
       <div>
-        <span className="text-xs sm:text-sm font-bold text-white block">{title}</span>
+        <span className="text-xs sm:text-sm font-bold text-dash-text block">{title}</span>
         <span className="text-[11px] text-dash-secondary mt-0.5 block leading-normal">{desc}</span>
       </div>
     </label>
@@ -2502,7 +2508,7 @@ function AdminDashboardView({
   return (
     <div className="space-y-6 text-left animate-fade-in">
       <div>
-        <h3 className="text-lg font-black text-white leading-tight">Organization Control Panel</h3>
+        <h3 className="text-lg font-black text-dash-text leading-tight">Organization Control Panel</h3>
         <p className="text-xs text-dash-secondary mt-1">Manage organization members, track metrics, and generate invite codes.</p>
       </div>
 
@@ -2515,7 +2521,7 @@ function AdminDashboardView({
           </div>
           <div>
             <span className="text-[10px] font-bold text-dash-secondary uppercase tracking-wider block">Total Members</span>
-            <span className="text-lg font-black text-white block mt-0.5">{members.length}</span>
+            <span className="text-lg font-black text-dash-text block mt-0.5">{members.length}</span>
           </div>
         </div>
 
@@ -2537,7 +2543,7 @@ function AdminDashboardView({
           </div>
           <div>
             <span className="text-[10px] font-bold text-dash-secondary uppercase tracking-wider block">Most Active Member</span>
-            <span className="text-xs font-black text-white block mt-0.5 truncate max-w-[150px]">
+            <span className="text-xs font-black text-dash-text block mt-0.5 truncate max-w-[150px]">
               {metrics?.most_active_member.name !== "N/A"
                 ? `${metrics?.most_active_member.name} (${metrics?.most_active_member.tasks} runs)`
                 : "No task runs yet"}
@@ -2550,7 +2556,7 @@ function AdminDashboardView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Members Management Table (8 cols) */}
         <div className="lg:col-span-8 bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl space-y-4">
-          <h4 className="text-xs font-black text-white uppercase tracking-wider">Members Directory</h4>
+          <h4 className="text-xs font-black text-dash-text uppercase tracking-wider">Members Directory</h4>
           <div className="overflow-x-auto rounded-xl border border-dash-border/40">
             <table className="w-full text-left border-collapse min-w-[500px]">
               <thead>
@@ -2564,10 +2570,10 @@ function AdminDashboardView({
               </thead>
               <tbody className="divide-y divide-dash-border/30 text-xs text-dash-secondary">
                 {members.map((m) => (
-                  <tr key={m.id} className="hover:bg-dash-card/10 text-white font-medium">
+                  <tr key={m.id} className="hover:bg-dash-card/10 text-dash-text font-medium">
                     <td className="py-3.5 px-4">
                       <div>
-                        <span className="font-bold text-white block">{m.fullname}</span>
+                        <span className="font-bold text-dash-text block">{m.fullname}</span>
                         <span className="text-[10px] text-dash-secondary block font-semibold">{m.email}</span>
                       </div>
                     </td>
@@ -2603,7 +2609,7 @@ function AdminDashboardView({
 
         {/* Invite link panel (4 cols) */}
         <div className="lg:col-span-4 bg-dash-sidebar/20 border border-dash-border/60 rounded-2xl p-6 shadow-xl space-y-4 font-sans">
-          <h4 className="text-xs font-black text-white uppercase tracking-wider">Invite Members</h4>
+          <h4 className="text-xs font-black text-dash-text uppercase tracking-wider">Invite Members</h4>
           <p className="text-[10px] text-dash-secondary leading-normal font-semibold">
             Share this secure invite URL with coworkers to let them join your organization.
           </p>
@@ -2620,7 +2626,7 @@ function AdminDashboardView({
                 />
                 <button
                   onClick={copyInviteLink}
-                  className="p-2.5 bg-dash-card border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-white rounded-xl transition-all cursor-pointer flex-shrink-0"
+                  className="p-2.5 bg-dash-card border border-dash-border/60 hover:border-dash-primary text-dash-secondary hover:text-dash-primary rounded-xl transition-all cursor-pointer flex-shrink-0"
                   title="Copy Invite URL"
                 >
                   {copied ? <Check className="w-4 h-4 text-dash-primary" /> : <Copy className="w-4 h-4" />}
@@ -2630,7 +2636,7 @@ function AdminDashboardView({
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] font-black text-dash-secondary uppercase tracking-wider">Invite Code</label>
-              <div className="bg-black/20 border border-dash-border/30 rounded-xl px-4 py-2.5 text-xs text-white font-mono text-center font-black">
+              <div className="bg-black/20 border border-dash-border/30 rounded-xl px-4 py-2.5 text-xs text-dash-text font-mono text-center font-black">
                 {inviteCode}
               </div>
             </div>

@@ -110,23 +110,23 @@ export default function Navbar({
   const getNotifIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle2 className="w-4 h-4 text-[#10B981]" />;
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
       case "warning":
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-500" />;
       case "error":
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
-        return <Info className="w-4 h-4 text-blue-400" />;
+        return <Info className="w-4 h-4 text-blue-500" />;
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-dash-bg/85 backdrop-blur-md border-b border-dash-border/60 py-4.5 px-6 lg:px-8 flex items-center justify-between">
+    <header className="sticky top-0 z-30 w-full bg-dash-bg/85 backdrop-blur-md border-b border-dash-border py-4.5 px-6 lg:px-8 flex items-center justify-between text-left">
       {/* Mobile Burger Open button */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden text-dash-secondary hover:text-white p-1 rounded hover:bg-dash-card/50 cursor-pointer animate-fade-in"
+          className="lg:hidden text-dash-secondary hover:text-dash-primary p-1 rounded hover:bg-dash-primary/5 cursor-pointer animate-fade-in"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -147,9 +147,9 @@ export default function Navbar({
               setSearchQuery(e.target.value);
               setOpenDropdown("search");
             }}
-            className="w-full bg-[#08120F]/65 border border-dash-border hover:border-[#10B981]/30 focus:border-dash-primary rounded-xl pl-10 pr-16 py-2.5 text-xs text-white focus:outline-none transition-all placeholder:text-dash-secondary font-medium tracking-wide"
+            className="w-full bg-dash-card border border-dash-border hover:border-dash-primary/30 focus:border-dash-primary rounded-xl pl-10 pr-16 py-2.5 text-xs text-dash-text focus:outline-none transition-all placeholder:text-dash-secondary font-semibold tracking-wide"
           />
-          <span className="absolute inset-y-0 right-3 flex items-center text-[10px] text-dash-secondary font-bold select-none pointer-events-none bg-dash-sidebar/40 border border-dash-border/60 px-1.5 py-0.5 rounded h-fit my-auto">
+          <span className="absolute inset-y-0 right-3 flex items-center text-[10px] text-dash-secondary font-bold select-none pointer-events-none bg-dash-bg border border-dash-border px-1.5 py-0.5 rounded h-fit my-auto">
             Ctrl + K
           </span>
         </div>
@@ -161,11 +161,11 @@ export default function Navbar({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
-              className="absolute left-0 right-0 mt-2 bg-dash-sidebar border border-dash-border rounded-xl shadow-2xl overflow-hidden z-50 p-2 max-h-60 overflow-y-auto scrollbar-thin text-left"
+              className="absolute left-0 right-0 mt-2 bg-dash-sidebar border border-dash-border rounded-xl shadow-xl overflow-hidden z-50 p-2 max-h-60 overflow-y-auto scrollbar-thin text-left"
             >
               {filteredSearchTasks.length === 0 ? (
-                <div className="py-4 text-center text-xs text-dash-secondary">
-                  No outcome logs match your query
+                <div className="py-4 text-center text-xs text-dash-secondary font-semibold">
+                  No outcomes match your query
                 </div>
               ) : (
                 filteredSearchTasks.slice(0, 5).map((t) => (
@@ -176,10 +176,10 @@ export default function Navbar({
                       setSearchQuery("");
                       setOpenDropdown(null);
                     }}
-                    className="w-full py-2 px-3 hover:bg-dash-card/45 rounded-lg flex flex-col cursor-pointer text-left"
+                    className="w-full py-2 px-3 hover:bg-dash-primary/5 rounded-lg flex flex-col cursor-pointer text-left"
                   >
-                    <span className="text-xs font-bold text-white block truncate">{t.name}</span>
-                    <span className="text-[10px] text-dash-secondary block truncate mt-0.5">{t.description || t.expectedOutcome}</span>
+                    <span className="text-xs font-bold text-dash-text block truncate">{t.name}</span>
+                    <span className="text-[10px] text-dash-secondary block truncate mt-0.5 font-semibold">{t.description || t.expectedOutcome}</span>
                   </button>
                 ))
               )}
@@ -198,11 +198,11 @@ export default function Navbar({
               e.stopPropagation();
               setOpenDropdown(openDropdown === "notifications" ? null : "notifications");
             }}
-            className="p-2.5 text-dash-secondary hover:text-white rounded-xl transition-all cursor-pointer relative hover:bg-dash-sidebar/40"
+            className="p-2.5 text-dash-secondary hover:text-dash-primary rounded-xl transition-all cursor-pointer relative hover:bg-dash-primary/5"
           >
             <Bell className="w-5 h-5" />
             {unreadNotifs.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 min-w-4 h-4 bg-dash-primary text-dash-bg text-[9px] font-black rounded-full flex items-center justify-center border-2 border-dash-bg shadow-[0_0_8px_rgba(16,185,129,0.4)] px-0.5 animate-pulse-glow">
+              <span className="absolute top-1.5 right-1.5 min-w-4 h-4 bg-dash-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-dash-bg shadow-[0_2px_8px_rgba(139,92,246,0.3)] px-0.5 animate-pulse-glow">
                 {unreadNotifs.length}
               </span>
             )}
@@ -215,10 +215,10 @@ export default function Navbar({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
-                className="absolute right-0 mt-3.5 w-80 bg-dash-sidebar border border-dash-border rounded-2xl shadow-2xl z-50 overflow-hidden text-left animate-fade-in"
+                className="absolute right-0 mt-3.5 w-80 bg-dash-sidebar border border-dash-border rounded-2xl shadow-xl z-50 overflow-hidden text-left"
               >
-                <div className="p-4 border-b border-dash-border/60 flex items-center justify-between bg-dash-card/10">
-                  <h4 className="text-xs font-black text-white">Recent Log Relays</h4>
+                <div className="p-4 border-b border-dash-border flex items-center justify-between bg-dash-card/10">
+                  <h4 className="text-xs font-black text-dash-text">Recent Alerts & Actions</h4>
                   {unreadNotifs.length > 0 && (
                     <button
                       onClick={markAllNotifsRead}
@@ -229,9 +229,9 @@ export default function Navbar({
                   )}
                 </div>
 
-                <div className="divide-y divide-dash-border/40 max-h-64 overflow-y-auto scrollbar-thin">
+                <div className="divide-y divide-dash-border max-h-64 overflow-y-auto scrollbar-thin">
                   {notifications.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-dash-secondary">
+                    <div className="py-8 text-center text-xs text-dash-secondary font-semibold">
                       No new notifications
                     </div>
                   ) : (
@@ -242,14 +242,14 @@ export default function Navbar({
                           markNotifRead(notif.id);
                           setOpenDropdown(null);
                         }}
-                        className={`p-3.5 flex items-start gap-3 hover:bg-dash-card/10 transition-colors cursor-pointer ${
+                        className={`p-3.5 flex items-start gap-3 hover:bg-dash-primary/5 transition-colors cursor-pointer ${
                           !notif.read ? "bg-dash-primary/5" : ""
                         }`}
                       >
                         <div className="mt-0.5 flex-shrink-0">{getNotifIcon(notif.type)}</div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-white truncate">{notif.title}</p>
-                          <p className="text-[10px] text-dash-secondary mt-0.5 line-clamp-2 leading-relaxed">
+                          <p className="text-xs font-bold text-dash-text truncate">{notif.title}</p>
+                          <p className="text-[10px] text-dash-secondary mt-0.5 line-clamp-2 leading-relaxed font-semibold">
                             {notif.message}
                           </p>
                           <span className="text-[8px] text-dash-secondary/50 block mt-1 font-bold uppercase tracking-wider">
@@ -261,13 +261,13 @@ export default function Navbar({
                   )}
                 </div>
 
-                <div className="p-3 border-t border-dash-border/60 text-center bg-dash-card/15">
+                <div className="p-3 border-t border-dash-border text-center bg-dash-card/15">
                   <button
                     onClick={() => {
                       setActiveModule("notifications");
                       setOpenDropdown(null);
                     }}
-                    className="text-[10px] text-dash-secondary hover:text-white font-black uppercase tracking-wider cursor-pointer"
+                    className="text-[10px] text-dash-secondary hover:text-dash-primary font-black uppercase tracking-wider cursor-pointer"
                   >
                     View All Notifications Hub →
                   </button>
@@ -280,7 +280,7 @@ export default function Navbar({
         {/* Theme toggle icon */}
         <button
           onClick={toggleTheme}
-          className="p-2.5 text-dash-secondary hover:text-white hover:bg-dash-sidebar/40 rounded-xl cursor-pointer"
+          className="p-2.5 text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-xl cursor-pointer"
           aria-label="Toggle Theme"
         >
           {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
@@ -296,7 +296,7 @@ export default function Navbar({
             }}
             className="flex items-center gap-3 p-1 rounded-xl cursor-pointer transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dash-primary to-dash-hover flex items-center justify-center text-dash-bg font-black text-xs uppercase shadow-md flex-shrink-0 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-dash-primary to-[#22D3EE] flex items-center justify-center text-white font-black text-xs uppercase shadow-md flex-shrink-0 overflow-hidden">
               {userAvatarUrl ? (
                 <img src={userAvatarUrl} alt={userFullName} className="w-full h-full object-cover" />
               ) : (
@@ -304,7 +304,7 @@ export default function Navbar({
               )}
             </div>
             <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs font-bold text-white leading-tight">
+              <span className="text-xs font-bold text-dash-text leading-tight">
                 {userFullName}
               </span>
               <span className="text-[9px] font-bold text-dash-secondary uppercase tracking-wider mt-0.5 leading-none">
@@ -321,10 +321,10 @@ export default function Navbar({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
-                className="absolute right-0 mt-3 w-52 bg-dash-sidebar border border-dash-border rounded-xl shadow-2xl z-50 overflow-hidden p-1.5 text-left"
+                className="absolute right-0 mt-3 w-52 bg-dash-sidebar border border-dash-border rounded-xl shadow-xl z-50 overflow-hidden p-1.5 text-left"
               >
-                <div className="px-3.5 py-3 border-b border-dash-border/50 text-left">
-                  <p className="text-xs font-black text-white truncate">{userFullName}</p>
+                <div className="px-3.5 py-3 border-b border-dash-border text-left">
+                  <p className="text-xs font-black text-dash-text truncate">{userFullName}</p>
                   <p className="text-[10px] text-dash-secondary truncate mt-0.5 font-bold leading-none">{userEmail}</p>
                 </div>
 
@@ -334,7 +334,7 @@ export default function Navbar({
                       setActiveModule("profile");
                       setOpenDropdown(null);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-white hover:bg-dash-card/45 rounded-lg cursor-pointer transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-lg cursor-pointer transition-colors text-left"
                   >
                     <User className="w-4 h-4 text-dash-secondary" />
                     <span>My Profile</span>
@@ -345,22 +345,22 @@ export default function Navbar({
                       setActiveModule("settings");
                       setOpenDropdown(null);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-white hover:bg-dash-card/45 rounded-lg cursor-pointer transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-lg cursor-pointer transition-colors text-left"
                   >
                     <Settings className="w-4 h-4 text-dash-secondary" />
                     <span>Settings</span>
                   </button>
                 </div>
 
-                <div className="border-t border-dash-border/50 pt-1.5 pb-1">
+                <div className="border-t border-dash-border pt-1.5 pb-1">
                   <button
                     onClick={() => {
                       setOpenDropdown(null);
                       handleLogout();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-black text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg cursor-pointer transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-black text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer transition-colors text-left"
                   >
-                    <LogOut className="w-4 h-4 text-red-400" />
+                    <LogOut className="w-4 h-4 text-red-500" />
                     <span>Sign Out</span>
                   </button>
                 </div>

@@ -105,6 +105,7 @@ def startup_db_migration():
             connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS method VARCHAR(100) NULL"))
             connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS confidence DOUBLE PRECISION NULL"))
             connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS date VARCHAR(10) NULL"))
+            connection.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS reference_id VARCHAR(100) NULL"))
             
             # Reports migrations
             connection.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS report_path VARCHAR(500) NULL"))
@@ -1403,7 +1404,8 @@ def create_task(task_in: schemas.TaskCreate, current_user: models.User = Depends
         status=task_in.status,
         confidence=task_in.confidence,
         date=task_in.date,
-        user_id=current_user.id
+        user_id=current_user.id,
+        reference_id=task_in.reference_id
     )
     db.add(task)
     db.commit()
@@ -1487,6 +1489,101 @@ def delete_notification(notif_id: str, current_user: models.User = Depends(auth.
 def get_recent_reports(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     reports = db.query(models.Report).filter(models.Report.user_id == current_user.id).all()
     return reports
+
+
+# GET /api/products
+@app.get("/api/products", response_model=List[schemas.ProductResponse])
+def get_products(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    return db.query(models.Product).filter(models.Product.is_active == True).all()
+
+
+# GET /api/booking-services
+@app.get("/api/booking-services", response_model=List[schemas.BookingServiceResponse])
+def get_booking_services(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    return db.query(models.BookingService).filter(models.BookingService.is_active == True).all()
+
+
+# =====================================================================
+# PRODUCTS & BOOKING SERVICES SEED DATA
+# =====================================================================
+def seed_products_and_booking_services(db: Session, admin_id: int, org_id: int):
+    # Check if products already exist
+    product_count = db.query(models.Product).count()
+    if product_count == 0:
+        logger.info("Seeding products...")
+        products_data = [
+            {"name": "iPhone 16", "description": "Latest Apple iPhone 16 with A18 chip and advanced camera control.", "category": "Electronics", "price": 79900.0, "stock": 50, "image_url": "https://images.unsplash.com/photo-1727371752431-7e8e50b1d305?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Samsung Galaxy S24", "description": "Flagship Samsung Galaxy S24 with AI features and high-res camera.", "category": "Electronics", "price": 74999.0, "stock": 40, "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop"},
+            {"name": "MacBook Pro M3", "description": "High-performance Apple MacBook Pro with M3 chip and liquid retina display.", "category": "Electronics", "price": 169900.0, "stock": 15, "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Dell XPS 13", "description": "Premium ultra-thin laptop from Dell with infinity edge display.", "category": "Electronics", "price": 115000.0, "stock": 20, "image_url": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=600&auto=format&fit=crop"},
+            {"name": "HP Pavilion 15", "description": "Versatile HP laptop with Intel i5, ideal for study and work.", "category": "Electronics", "price": 55000.0, "stock": 30, "image_url": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Sony WH-1000XM5", "description": "Industry leading active noise cancelling wireless headphones from Sony.", "category": "Audio", "price": 29990.0, "stock": 25, "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop"},
+            {"name": "iPad Air M2", "description": "Powerful and thin iPad Air featuring Apple M2 chip and support for Apple Pencil.", "category": "Electronics", "price": 59900.0, "stock": 35, "image_url": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Apple Watch Series 9", "description": "Sleek Apple Watch with crash detection and bright always-on display.", "category": "Wearables", "price": 41900.0, "stock": 45, "image_url": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=600&auto=format&fit=crop"},
+            {"name": "LG Ultragear Monitor", "description": "27-inch IPS gaming monitor with 144Hz refresh rate and 1ms response time.", "category": "Electronics", "price": 24500.0, "stock": 18, "image_url": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Logitech MX Keys Keyboard", "description": "Advanced wireless illuminated keyboard from Logitech.", "category": "Accessories", "price": 12995.0, "stock": 50, "image_url": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=600&auto=format&fit=crop"},
+            {"name": "Logitech MX Master 3S Mouse", "description": "Ergonomic wireless mouse with ultra-fast scroll wheel.", "category": "Accessories", "price": 9495.0, "stock": 60, "image_url": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?q=80&w=600&auto=format&fit=crop"},
+            {"name": "OnePlus 12", "description": "High performance Android smartphone from OnePlus with Hasselblad camera.", "category": "Electronics", "price": 64999.0, "stock": 30, "image_url": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop"}
+        ]
+        for p in products_data:
+            product = models.Product(
+                name=p["name"],
+                description=p["description"],
+                category=p["category"],
+                price=p["price"],
+                stock=p["stock"],
+                image_url=p["image_url"],
+                created_by=admin_id,
+                organization_id=org_id,
+                is_active=True
+            )
+            db.add(product)
+        db.commit()
+        logger.info("Products seeded successfully.")
+
+    # Check if booking services already exist
+    service_count = db.query(models.BookingService).count()
+    if service_count == 0:
+        logger.info("Seeding booking services...")
+        services_data = [
+            {"service_name": "Cricket Turf", "service_type": "Sports", "location": "Bangalore", "price": 1500.0, "capacity": 22},
+            {"service_name": "Football Turf", "service_type": "Sports", "location": "Mumbai", "price": 1800.0, "capacity": 14},
+            {"service_name": "Badminton Court", "service_type": "Sports", "location": "Delhi", "price": 400.0, "capacity": 4},
+            {"service_name": "Swimming Pool", "service_type": "Leisure", "location": "Chennai", "price": 250.0, "capacity": 20},
+            {"service_name": "Zoo Entry", "service_type": "Entertainment", "location": "Mysore", "price": 100.0, "capacity": 100},
+            {"service_name": "Cinema Hall", "service_type": "Entertainment", "location": "Bangalore", "price": 300.0, "capacity": 150}
+        ]
+        
+        base_time = datetime.now().replace(minute=0, second=0, microsecond=0)
+        for s in services_data:
+            service = models.BookingService(
+                service_name=s["service_name"],
+                service_type=s["service_type"],
+                location=s["location"],
+                price=s["price"],
+                capacity=s["capacity"],
+                created_by=admin_id,
+                organization_id=org_id,
+                is_active=True
+            )
+            db.add(service)
+            db.commit() # Commit to get service.id
+            
+            # Seed future slots for this service
+            slots = [
+                base_time + timedelta(days=1, hours=10), # Tomorrow 10:00 AM
+                base_time + timedelta(days=1, hours=16), # Tomorrow 4:00 PM
+                base_time + timedelta(days=2, hours=11), # Day after 11:00 AM
+            ]
+            for slot_time in slots:
+                slot = models.BookingSlot(
+                    service_id=service.id,
+                    slot_time=slot_time,
+                    is_available=True
+                )
+                db.add(slot)
+        db.commit()
+        logger.info("Booking services and slots seeded successfully.")
 
 
 # =====================================================================
@@ -1598,6 +1695,14 @@ def seed_admin_and_org():
                     push_notifications=False
                 )
                 db.add(setting)
+        
+        # Seed Products and Booking Services under the admin user
+        if admin and org:
+            try:
+                seed_products_and_booking_services(db, admin.id, org.id)
+            except Exception as e:
+                logger.error(f"Error seeding products and booking services: {e}")
+                
         db.commit()
     except Exception as e:
         logger.error(f"Seeding admin/org failed: {str(e)}")

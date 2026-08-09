@@ -1,7 +1,8 @@
-import { ShieldCheck, Menu, X } from "lucide-react";
+import { ShieldCheck, Menu, X, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -9,6 +10,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,10 +76,11 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled || location.pathname !== "/"
-          ? "bg-[#08120F]/85 backdrop-blur-md border-b border-[#14532D]/60 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
-          : "bg-transparent border-b border-transparent"
-        }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        scrolled || location.pathname !== "/"
+          ? "bg-dash-sidebar/95 backdrop-blur-md border-b border-dash-border shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-dash-text"
+          : "bg-transparent border-b border-transparent text-dash-text"
+      }`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 lg:px-8 py-4">
         {/* Logo */}
@@ -94,27 +97,27 @@ export default function Navbar() {
           }}
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="bg-gradient-to-br from-green-500 to-[#14532D] p-2 rounded-xl shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-all duration-300">
+          <div className="bg-gradient-to-br from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] p-2 rounded-xl shadow-lg shadow-violet-500/10 group-hover:shadow-[#8B5CF6]/30 transition-all duration-300">
             <ShieldCheck className="text-white" size={24} />
           </div>
-          <div>
-            <h1 className="text-xl font-black text-white tracking-wide leading-none">
-              VeriNova
+          <div className="text-left">
+            <h1 className="text-xl font-black text-dash-text tracking-wide leading-none group-hover:text-dash-primary transition-colors">
+              VeriNova AI
             </h1>
-            <p className="text-gray-400 text-[10px] tracking-[0.2em] font-semibold uppercase mt-0.5">
+            <p className="text-dash-secondary text-[9px] tracking-[0.15em] font-bold uppercase mt-1">
               Outcome Verification
             </p>
           </div>
         </Link>
 
-        {/* Desktop Menu */}
-        <ul className="hidden lg:flex gap-8 text-gray-300 font-medium text-sm">
+        {/* Desktop Menu - centered */}
+        <ul className="hidden lg:flex gap-8 text-dash-text font-semibold text-sm">
           {navLinks.map((link) => (
             <li key={link.name}>
               <a
                 href={link.href}
                 onClick={(e) => handleScrollTo(e, link.href)}
-                className="hover:text-[#22C55E] transition-colors duration-200 cursor-pointer relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[#22C55E] hover:after:w-full after:transition-all after:duration-300"
+                className="hover:text-dash-primary transition-colors duration-200 cursor-pointer relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2.5px] after:bg-dash-primary hover:after:w-full after:transition-all after:duration-300"
               >
                 {link.name}
               </a>
@@ -122,13 +125,21 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Buttons */}
+        {/* Buttons - right-aligned */}
         <div className="hidden md:flex items-center gap-4">
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-xl cursor-pointer transition-colors"
+            aria-label="Toggle Theme"
+          >
+            {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+          
           {isAuthenticated ? (
             <>
               <Link
                 to="/dashboard"
-                className="text-gray-300 hover:text-white px-4 py-2 font-medium text-sm transition-colors duration-200"
+                className="text-dash-text hover:text-dash-primary px-4 py-2 font-semibold text-sm transition-colors duration-200"
               >
                 Dashboard
               </Link>
@@ -137,7 +148,7 @@ export default function Navbar() {
                   logout();
                   navigate("/", { replace: true });
                 }}
-                className="relative overflow-hidden group bg-gradient-to-r from-[#14532D] to-[#08120F] border border-[#14532D] hover:border-[#22C55E] px-5 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg transition-all duration-300 text-center cursor-pointer"
+                className="relative overflow-hidden group border border-dash-border hover:border-dash-primary bg-dash-card text-dash-text hover:text-dash-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all duration-300 text-center cursor-pointer"
               >
                 Logout
               </button>
@@ -146,40 +157,49 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="text-gray-300 hover:text-white px-4 py-2 font-medium text-sm transition-colors duration-200"
+                className="text-dash-text hover:text-dash-primary px-4 py-2 font-semibold text-sm transition-colors duration-200"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="relative overflow-hidden group bg-gradient-to-r from-[#22C55E] to-[#14532D] hover:from-[#4ADE80] hover:to-[#22C55E] px-5 py-2.5 rounded-xl text-white text-sm font-semibold shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(74,222,128,0.5)] transition-all duration-300 text-center"
+                className="relative overflow-hidden group bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] hover:opacity-90 px-5 py-2.5 rounded-xl text-white text-sm font-bold shadow-[0_4px_12px_rgba(139,92,246,0.2)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.35)] transition-all duration-300 text-center"
               >
-                <span className="relative z-10">Get Started</span>
+                <span className="relative z-10 flex items-center gap-1">Get Started &rarr;</span>
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="lg:hidden text-[#22C55E] p-2 hover:bg-[#10211C] rounded-lg transition-colors"
-          aria-label="Toggle Menu"
-        >
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile controls & Menu Button */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-xl cursor-pointer transition-colors"
+            aria-label="Toggle Theme"
+          >
+            {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="lg:hidden text-dash-primary p-2 hover:bg-dash-primary/5 rounded-lg transition-colors"
+            aria-label="Toggle Menu"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="lg:hidden bg-[#10211C]/95 backdrop-blur-lg border-b border-[#14532D] absolute top-full left-0 w-full shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-5">
-          <ul className="flex flex-col p-6 gap-4 text-gray-300 font-medium">
+        <div className="lg:hidden bg-dash-sidebar border-b border-dash-border absolute top-full left-0 w-full shadow-2xl transition-all duration-300 animate-in fade-in slide-in-from-top-5">
+          <ul className="flex flex-col p-6 gap-4 text-dash-text font-semibold">
             {navLinks.map((link) => (
-              <li key={link.name} className="border-b border-[#14532D]/30 pb-2">
+              <li key={link.name} className="border-b border-dash-border/40 pb-2">
                 <a
                   href={link.href}
                   onClick={(e) => handleScrollTo(e, link.href)}
-                  className="block hover:text-[#22C55E] transition-colors py-1"
+                  className="block hover:text-dash-primary transition-colors py-1"
                 >
                   {link.name}
                 </a>
@@ -191,7 +211,7 @@ export default function Navbar() {
                   <Link
                     to="/dashboard"
                     onClick={() => setMenuOpen(false)}
-                    className="w-full border border-[#14532D] rounded-xl py-2.5 text-gray-300 hover:bg-[#10211C] transition-colors text-center"
+                    className="w-full border border-dash-border bg-dash-card rounded-xl py-2.5 text-dash-text hover:bg-dash-primary/5 transition-colors text-center font-bold"
                   >
                     Dashboard
                   </Link>
@@ -201,7 +221,7 @@ export default function Navbar() {
                       logout();
                       navigate("/", { replace: true });
                     }}
-                    className="w-full bg-[#14532D]/40 text-red-400 font-bold rounded-xl py-2.5 hover:bg-red-500/10 transition-colors text-center cursor-pointer"
+                    className="w-full bg-red-500/10 text-red-500 font-bold rounded-xl py-2.5 hover:bg-red-500/20 transition-colors text-center cursor-pointer"
                   >
                     Logout
                   </button>
@@ -211,14 +231,14 @@ export default function Navbar() {
                   <Link
                     to="/login"
                     onClick={() => setMenuOpen(false)}
-                    className="w-full border border-[#14532D] rounded-xl py-2.5 text-gray-300 hover:bg-[#10211C] transition-colors text-center"
+                    className="w-full border border-dash-border bg-dash-card rounded-xl py-2.5 text-dash-text hover:bg-dash-primary/5 transition-colors text-center font-bold"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMenuOpen(false)}
-                    className="w-full bg-[#22C55E] text-[#08120F] font-bold rounded-xl py-2.5 shadow-lg shadow-green-500/20 hover:bg-[#4ADE80] transition-colors text-center"
+                    className="w-full bg-gradient-to-r from-[#8B5CF6] via-[#EC4899] to-[#22D3EE] text-white font-bold rounded-xl py-2.5 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/30 transition-colors text-center"
                   >
                     Get Started
                   </Link>
