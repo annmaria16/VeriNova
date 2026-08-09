@@ -522,64 +522,112 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
 
         elif state.task_type == "shopping":
             selected_service = "Shopping Service"
-            prod_name = state.params.get("product_name", "").lower()
+            prod_name = state.params.get("product_name")
             max_p = state.params.get("max_price")
-            if max_p:
+            
+            if prod_name:
+                prod_name = prod_name.lower().strip()
+            else:
+                prod_name = ""
+                
+            if max_p is not None and max_p != "":
                 try:
                     max_p = float(max_p)
                 except ValueError:
                     max_p = None
-                    
-            query = db.query(models.Product).filter(models.Product.is_active == True)
-            if "laptop" in prod_name:
-                matches = query.filter(models.Product.name.ilike("%laptop%")).all()
             else:
-                matches = query.filter(models.Product.name.ilike(f"%{prod_name}%")).all()
-                
-            if not matches:
-                matches = query.filter((models.Product.name.ilike(f"%{prod_name}%")) | (models.Product.category.ilike(f"%{prod_name}%"))).all()
+                max_p = None
+
+            # Fetch all active products
+            all_products = db.query(models.Product).filter(models.Product.is_active == True).all()
             
-            if max_p:
-                matches = [m for m in matches if m.price <= max_p]
+            # Find direct text matches (where product name contains search query or vice versa)
+            matches = []
+            for p in all_products:
+                name_lower = p.name.lower()
+                desc_lower = p.description.lower() if p.description else ""
+                category_lower = p.category.lower() if p.category else ""
                 
-            if len(matches) > 1:
+                # Check match by name, category, or description
+                if prod_name in name_lower or name_lower in prod_name or prod_name in category_lower or prod_name in desc_lower:
+                    matches.append(p)
+                    
+            # If no matches, try splitting words
+            if not matches and prod_name:
+                words = [w for w in prod_name.split() if len(w) > 2]
+                for p in all_products:
+                    name_lower = p.name.lower()
+                    if any(w in name_lower for w in words):
+                        matches.append(p)
+
+            # Apply budget check
+            budget_matches = []
+            exceeded_budget_products = []
+            
+            for m in matches:
+                if max_p is None or m.price <= max_p:
+                    budget_matches.append(m)
+                else:
+                    exceeded_budget_products.append(m)
+
+            if not matches:
+                # No product matches the name/category at all
+                explanation = f"NO MATCH FOUND: No product in database matches search query '{prod_name}'."
+                service_res = {
+                    "status": "failed",
+                    "error": explanation
+                }
+                db_check_data = {
+                    "success": False,
+                    "match": False,
+                    "details": explanation
+                }
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] {explanation}")
+            elif not budget_matches:
+                # Products matched the name, but all exceeded the budget
+                exceeded_details = ", ".join([f"{p.name} (price: ₹{p.price})" for p in exceeded_budget_products])
+                explanation = f"NO MATCH FOUND: All matching products exceed your budget of ₹{max_p}. Matching options: {exceeded_details}."
+                service_res = {
+                    "status": "failed",
+                    "error": explanation
+                }
+                db_check_data = {
+                    "success": False,
+                    "match": False,
+                    "details": explanation
+                }
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] {explanation}")
+            elif len(budget_matches) > 1:
+                # Ambiguity: multiple matching products fit within the budget
                 state.status = "Needs Clarification"
                 state.missing_params = ["product_name"]
-                options_str = ", ".join([f"{m.name} (₹{m.price})" for m in matches])
+                options_str = ", ".join([f"{m.name} (₹{m.price})" for m in budget_matches])
                 service_res = {
                     "status": "needs_clarification",
                     "error": f"I found multiple product options: {options_str}. Which one do you want?"
                 }
-                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Ambiguous request. Suspended for clarification.")
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Ambiguous request: multiple products match query. Suspended for clarification.")
                 exec_record.parsed_intent = state.to_dict()
                 exec_record.execution_status = "Needs Clarification"
                 task.status = "Needs Clarification"
                 db.add(models.TaskLog(task_id=task_id, action="suspend", details=f"Suspended. Multiple matches found: {options_str}"))
                 db.commit()
                 return state.to_dict()
-                
-            if not matches:
-                service_res = {
-                    "status": "failed",
-                    "error": f"No product found matching '{prod_name}'" + (f" under budget of ₹{max_p}" if max_p else "")
-                }
-                db_check_data = {
-                    "success": False,
-                    "match": False,
-                    "details": f"Checked products database. No active product matches name '{prod_name}'."
-                }
             else:
-                product = matches[0]
+                # Single matching product
+                product = budget_matches[0]
                 if product.stock <= 0:
+                    explanation = f"Product '{product.name}' is currently out of stock."
                     service_res = {
                         "status": "failed",
-                        "error": f"Product '{product.name}' is out of stock."
+                        "error": explanation
                     }
                     db_check_data = {
                         "success": False,
                         "match": False,
-                        "details": f"Checked stock for product {product.name} (ID: {product.id}). Stock count is {product.stock}."
+                        "details": explanation
                     }
+                    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] {explanation}")
                 else:
                     old_stock = product.stock
                     product.stock -= 1
@@ -598,8 +646,24 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                     db_check_data = {
                         "success": True,
                         "match": True,
-                        "details": f"Deducted stock for {product.name} (ID: {product.id}) from {old_stock} to {product.stock}. Reference recorded."
+                        "selected_product": product.name,
+                        "product_id": product.id,
+                        "price": product.price,
+                        "stock_before": old_stock,
+                        "stock_after": product.stock,
+                        "details": f"Deducted stock for {product.name} (ID: {product.id}) from {old_stock} to {product.stock}. Reference recorded.",
+                        "database_record": {
+                            "id": product.id,
+                            "name": product.name,
+                            "category": product.category,
+                            "price": product.price,
+                            "stock": product.stock,
+                            "is_active": product.is_active
+                        }
                     }
+                    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Selected product: {product.name} (ID: {product.id}) for ₹{product.price}.")
+                    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Stock check passed. Previous stock: {old_stock}, new stock: {product.stock}.")
+                    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Purchase record completed. Stock deducted.")
 
         elif state.task_type == "booking":
             selected_service = "Booking Service"
@@ -636,6 +700,7 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                     "match": False,
                     "details": f"Checked booking services database. No active service matches '{s_name}'."
                 }
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Failed: No booking service found matching '{s_name}'.")
             else:
                 service = matching_services[0]
                 hour = 18
@@ -646,8 +711,12 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 elif "11" in time_str:
                     hour = 11
                 elif "6" in time_str or "18" in time_str or "evening" in time_str:
-                    hour = 18
+                    if "am" in time_str:
+                        hour = 6
+                    else:
+                        hour = 18
                 
+                # Fetch matching slot first without locking to verify its existence
                 slots = db.query(models.BookingSlot).filter(models.BookingSlot.service_id == service.id).all()
                 matching_slot = None
                 for slot in slots:
@@ -667,36 +736,96 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                         "match": False,
                         "details": f"Checked slots for service {service.service_name} (ID: {service.id}) on {date_str}. No matching slots found."
                     }
-                elif not matching_slot.is_available:
-                    service_res = {
-                        "status": "failed",
-                        "error": f"The slot on {date_str} at {time_str} is already booked."
-                    }
-                    db_check_data = {
-                        "success": False,
-                        "match": False,
-                        "details": f"Checked slot ID {matching_slot.id} status. Slot is not available (is_available = False)."
-                    }
+                    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Failed: No matching slot found on {date_str} at {time_str}.")
                 else:
-                    matching_slot.is_available = False
-                    db.commit()
+                    # Concurrency-safe double-check: acquire write lock on the slot row inside transaction
+                    # We query with_for_update to lock the slot row in PostgreSQL
+                    locked_slot = db.query(models.BookingSlot).filter(models.BookingSlot.id == matching_slot.id).with_for_update().first()
+                    slot_avail_before = locked_slot.is_available
                     
-                    task.reference_id = str(matching_slot.id)
-                    
-                    service_res = {
-                        "status": "confirmed",
-                        "booking_id": f"BK-{matching_slot.id}",
-                        "service_name": service.service_name,
-                        "location": service.location,
-                        "slot_time": matching_slot.slot_time.isoformat(),
-                        "price": service.price,
-                        "message": f"Successfully booked {service.service_name} for {date_str} at {time_str}."
-                    }
-                    db_check_data = {
-                        "success": True,
-                        "match": True,
-                        "details": f"Updated booking slot ID {matching_slot.id} to is_available=False. Reference registered in task."
-                    }
+                    if not slot_avail_before:
+                        # Release lock (by committing or rolling back) and fetch alternative slots for suggestions
+                        db.commit()
+                        
+                        alternatives = db.query(models.BookingSlot).filter(
+                            models.BookingSlot.service_id == service.id,
+                            models.BookingSlot.is_available == True
+                        ).limit(3).all()
+                        
+                        if alternatives:
+                            alt_list = []
+                            for alt in alternatives:
+                                formatted_time = alt.slot_time.strftime("%I %p").lstrip('0')
+                                formatted_date = alt.slot_time.strftime("%Y-%m-%d")
+                                alt_list.append(f"{formatted_date} at {formatted_time}")
+                            alt_str = ", or ".join(alt_list)
+                            alt_msg = f" That slot is no longer available. Available slots: {alt_str}."
+                        else:
+                            alt_msg = " That slot is no longer available and no alternative slots are open."
+                            
+                        service_res = {
+                            "status": "failed",
+                            "error": f"Booking failed.{alt_msg}"
+                        }
+                        db_check_data = {
+                            "success": False,
+                            "match": False,
+                            "details": f"Re-checked slot ID {matching_slot.id} inside transaction. Slot is already booked (is_available = False)."
+                        }
+                        state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Concurrency-check failed: Slot ID {matching_slot.id} is already booked.")
+                    else:
+                        # Slot is available, proceed with booking creation
+                        locked_slot.is_available = False
+                        db.commit() # Commit the slot status update
+                        
+                        # Create permanent booking record
+                        booking_rec = models.BookingRecord(
+                            task_id=task_id,
+                            service_id=service.id,
+                            slot_id=locked_slot.id,
+                            user_id=task.user_id,
+                            price=service.price,
+                            status="confirmed"
+                        )
+                        db.add(booking_rec)
+                        db.commit()
+                        
+                        # Register reference ID in main Task record
+                        task.reference_id = str(booking_rec.id)
+                        db.commit()
+                        
+                        service_res = {
+                            "status": "confirmed",
+                            "booking_id": f"BK-{booking_rec.id}",
+                            "service_id": service.id,
+                            "slot_id": locked_slot.id,
+                            "service_name": service.service_name,
+                            "location": service.location,
+                            "slot_time": locked_slot.slot_time.isoformat(),
+                            "price": service.price,
+                            "message": f"Successfully booked {service.service_name} for {date_str} at {time_str}."
+                        }
+                        
+                        db_check_data = {
+                            "success": True,
+                            "match": True,
+                            "service_id": service.id,
+                            "slot_id": locked_slot.id,
+                            "slot_availability_before": slot_avail_before,
+                            "slot_availability_after": locked_slot.is_available,
+                            "booking_record": {
+                                "id": booking_rec.id,
+                                "task_id": booking_rec.task_id,
+                                "service_id": booking_rec.service_id,
+                                "slot_id": booking_rec.slot_id,
+                                "price": booking_rec.price,
+                                "status": booking_rec.status
+                            },
+                            "details": f"Acquired write lock on slot ID {locked_slot.id}. Slot was available (True). Updated is_available to False. BookingRecord ID {booking_rec.id} registered."
+                        }
+                        state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Concurrency-check passed. Slot locked.")
+                        state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Saved booking transaction record (ID: {booking_rec.id}).")
+                        state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Verification checks compiled successfully.")
 
     except Exception as e:
         logger.error(f"Error calling service: {str(e)}")

@@ -289,3 +289,16 @@ class BookingSlot(Base):
 
     # Relationships
     service = relationship("BookingService", back_populates="slots")
+
+
+class BookingRecord(Base):
+    __tablename__ = "booking_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(String(50), ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
+    service_id = Column(Integer, ForeignKey("booking_services.id", ondelete="CASCADE"), nullable=False)
+    slot_id = Column(Integer, ForeignKey("booking_slots.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    price = Column(Float, nullable=False)
+    booking_time = Column(DateTime, nullable=False, server_default=func.now())
+    status = Column(String(50), nullable=False, default="confirmed")
