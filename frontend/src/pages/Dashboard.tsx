@@ -748,6 +748,69 @@ export default function Dashboard() {
                         ))}
                       </div>
                     )}
+
+                    {clarificationFieldName === "service_name" && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {["Cricket Turf", "Football Turf", "Badminton Court", "Swimming Pool", "Cinema Hall"].map((s) => (
+                          <button
+                            type="button"
+                            key={s}
+                            onClick={() => setClarificationValue(s)}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === s ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {clarificationFieldName === "product_name" && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {["iPhone 16", "Samsung Galaxy S24", "MacBook Pro M3", "HP Pavilion 15"].map((p) => (
+                          <button
+                            type="button"
+                            key={p}
+                            onClick={() => setClarificationValue(p)}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === p ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {clarificationFieldName === "time" && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {["10 AM", "4 PM", "6 PM"].map((t) => (
+                          <button
+                            type="button"
+                            key={t}
+                            onClick={() => setClarificationValue(t)}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === t ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {clarificationFieldName === "date" && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {[
+                          new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                          new Date(Date.now() + 172800000).toISOString().split('T')[0]
+                        ].map((d) => (
+                          <button
+                            type="button"
+                            key={d}
+                            onClick={() => setClarificationValue(d)}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${clarificationValue === d ? "bg-dash-primary text-white border-dash-primary" : "border-dash-border bg-dash-bg hover:border-dash-primary/50 text-dash-secondary"}`}
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     
                     {clarificationFieldName === "theater" && (
                       <div className="flex flex-wrap gap-2 mb-3">
@@ -1213,7 +1276,7 @@ function DashboardHomeView({
             Welcome back, {userFullName} 👋
           </h2>
           <p className="text-dash-secondary text-xs sm:text-sm mt-1.5 font-semibold">
-            Verify outcomes with confidence.
+            Verify AI outcomes with evidence.
           </p>
         </div>
 
@@ -1564,6 +1627,30 @@ function NewVerificationView({
 
   const presets = [
     {
+      title: "Booking Assistant",
+      text: "Book a cricket turf tomorrow at 6 PM.",
+      desc: "Sports turf reservation and booking slot lookup",
+      icon: "🏏"
+    },
+    {
+      title: "Shopping Assistant",
+      text: "Find me a laptop under ₹60000.",
+      desc: "Electronics database product inventory search",
+      icon: "💻"
+    },
+    {
+      title: "Booking Assistant",
+      text: "Book a badminton court tomorrow evening.",
+      desc: "Court booking slot validation and reserve",
+      icon: "🏸"
+    },
+    {
+      title: "Shopping Assistant",
+      text: "Buy the iPhone 16 if stock is available.",
+      desc: "Deduct stock and confirm order consistency",
+      icon: "📱"
+    },
+    {
       title: "Refund Request",
       text: "Refund ₹500 for order #pay-4567",
       desc: "Razorpay Test sandbox payment refund simulation",
@@ -1571,27 +1658,9 @@ function NewVerificationView({
     },
     {
       title: "Send Notification",
-      text: "Send email to client@verinova.ai with message: 'Your booking PNR_XYZ has been verified.'",
+      text: "Send email to client@verinova.ai with message: 'Your booking has been verified.'",
       desc: "Gmail SMTP outbound dispatch system test",
       icon: "✉️"
-    },
-    {
-      title: "Search Travel",
-      text: "Search flight from NYC to LON on 2026-08-10",
-      desc: "Amadeus lookup API search query simulation",
-      icon: "✈️"
-    },
-    {
-      title: "Movie Ticket",
-      text: "Book ticket for Inception at IMAX theater at 7 PM",
-      desc: "Ticketing database showtime seat reservation check",
-      icon: "🎟️"
-    },
-    {
-      title: "CRM Update",
-      text: "Update status to premium for customer susan@example.com",
-      desc: "Direct database row insertion and audit match",
-      icon: "👤"
     }
   ];
 

@@ -10,7 +10,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Response
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Response, BackgroundTasks
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -1293,25 +1293,30 @@ def get_dashboard_activity(
     if filter == "today":
         today_str = today.strftime("%Y-%m-%d")
         labels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"]
-        values = [0] * 6
+        bucket_confs = [[] for _ in range(6)]
         
-        results = db.query(models.Task.id, models.VerificationLog.timestamp)\
+        results = db.query(models.Task.confidence, models.VerificationLog.timestamp)\
             .join(models.VerificationLog, models.Task.id == models.VerificationLog.task_id)\
             .filter(models.Task.user_id == current_user.id)\
             .filter(models.Task.date == today_str)\
             .filter(models.VerificationLog.step == 1).all()
             
-        for task_id, ts in results:
-            if ts:
+        for confidence, ts in results:
+            if ts and confidence is not None:
                 hour = ts.hour
                 bucket = min(hour // 4, 5)
-                values[bucket] += 1
+                bucket_confs[bucket].append(confidence)
                 
-        today_tasks_count = sum(1 for t in user_tasks if t.date == today_str)
-        if sum(values) == 0 and today_tasks_count > 0:
+        values = []
+        for confs in bucket_confs:
+            values.append(round(sum(confs) / len(confs), 1) if confs else 0.0)
+            
+        today_tasks = [t for t in user_tasks if t.date == today_str]
+        if sum(values) == 0 and today_tasks:
             current_hour = datetime.now().hour
             bucket = min(current_hour // 4, 5)
-            values[bucket] = today_tasks_count
+            confs = [t.confidence for t in today_tasks if t.confidence is not None]
+            values[bucket] = round(sum(confs) / len(confs), 1) if confs else 0.0
             
         return {"labels": labels, "values": values}
         
@@ -1324,22 +1329,35 @@ def get_dashboard_activity(
             d = today - timedelta(days=i)
             d_str = d.strftime("%Y-%m-%d")
             labels.append(weekday_names[d.weekday()])
-            count = sum(1 for t in user_tasks if t.date == d_str)
-            values.append(count)
             
+            day_tasks = [t for t in user_tasks if t.date == d_str]
+            if day_tasks:
+                confs = [t.confidence for t in day_tasks if t.confidence is not None]
+                avg_conf = sum(confs) / len(confs) if confs else 0.0
+                values.append(round(avg_conf, 1))
+            else:
+                values.append(0.0)
+                
         return {"labels": labels, "values": values}
         
     elif filter == "last_30_days":
         labels = []
         values = []
+        days_to_track = 29
         
-        for i in range(29, -1, -1):
+        for i in range(days_to_track, -1, -1):
             d = today - timedelta(days=i)
             d_str = d.strftime("%Y-%m-%d")
             labels.append(d.strftime("%b %d"))
-            count = sum(1 for t in user_tasks if t.date == d_str)
-            values.append(count)
             
+            day_tasks = [t for t in user_tasks if t.date == d_str]
+            if day_tasks:
+                confs = [t.confidence for t in day_tasks if t.confidence is not None]
+                avg_conf = sum(confs) / len(confs) if confs else 0.0
+                values.append(round(avg_conf, 1))
+            else:
+                values.append(0.0)
+                
         return {"labels": labels, "values": values}
         
     elif filter == "this_month":
@@ -1352,9 +1370,14 @@ def get_dashboard_activity(
             d = first_day + timedelta(days=i)
             d_str = d.strftime("%Y-%m-%d")
             labels.append(d.strftime("%b %d"))
-            count = sum(1 for t in user_tasks if t.date == d_str)
-            values.append(count)
-            
+            day_tasks = [t for t in user_tasks if t.date == d_str]
+            if day_tasks:
+                confs = [t.confidence for t in day_tasks if t.confidence is not None]
+                avg_conf = sum(confs) / len(confs) if confs else 0.0
+                values.append(round(avg_conf, 1))
+            else:
+                values.append(0.0)
+                
         return {"labels": labels, "values": values}
         
     else:
@@ -1718,9 +1741,20 @@ class RunTaskRequest(BaseModel):
     prompt: str
     priority: Optional[str] = "medium"
 
+def run_agent_workflow_background(task_id: str):
+    db_session = SessionLocal()
+    try:
+        from agent.orchestrator import execute_agent_workflow
+        execute_agent_workflow(task_id, db_session)
+    except Exception as e:
+        logger.error(f"Error in background task {task_id}: {str(e)}")
+    finally:
+        db_session.close()
+
 @app.post("/api/tasks/run")
 def run_task(
     req: RunTaskRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -1744,15 +1778,15 @@ def run_task(
         date=datetime.now().strftime("%Y-%m-%d"),
         user_id=current_user.id,
         task_type=task_type,
-        priority=req.priority or "medium"
+        priority=req.priority or "medium",
+        reference_id=None
     )
     db.add(task)
     db.commit()
     
-    # Run orchestrator
-    from agent.orchestrator import execute_agent_workflow
-    result = execute_agent_workflow(task_id, db)
-    return result
+    # Run orchestrator asynchronously in the background
+    background_tasks.add_task(run_agent_workflow_background, task_id)
+    return {"status": "Running", "task_id": task_id, "logs": []}
 
 
 def validate_clarification(param_name: str, param_value: str):
@@ -1763,7 +1797,7 @@ def validate_clarification(param_name: str, param_value: str):
     if not val:
         return False, "Value cannot be empty"
         
-    if param_name in ("destination", "origin", "theater", "movie_name"):
+    if param_name in ("destination", "origin", "theater", "movie_name", "service_name", "product_name"):
         # Should not be purely numeric
         if re.match(r'^\d+$', val):
             return False, f"Invalid {param_name.replace('_', ' ')}. It cannot be purely numeric."
@@ -1787,9 +1821,9 @@ def validate_clarification(param_name: str, param_value: str):
         if not re.match(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$', val):
             return False, "Invalid email address format."
             
-    elif param_name == "showtime":
+    elif param_name in ("showtime", "time"):
         if not any(k in val.lower() for k in ["am", "pm", ":"]) and not val.isdigit():
-            return False, "Invalid showtime format. E.g. '7 PM' or '19:00'."
+            return False, "Invalid time format. E.g. '6 PM' or '10 AM'."
 
     elif param_name == "status":
         if val.lower() not in ["premium", "active", "basic", "disabled", "inactive"]:
@@ -1806,6 +1840,7 @@ class ClarifyTaskRequest(BaseModel):
 def clarify_task(
     task_id: str,
     req: ClarifyTaskRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -1877,9 +1912,8 @@ def clarify_task(
     ))
     db.commit()
     
-    from agent.orchestrator import execute_agent_workflow
-    result = execute_agent_workflow(task_id, db)
-    return result
+    background_tasks.add_task(run_agent_workflow_background, task_id)
+    return {"status": "Running", "task_id": task_id}
 
 
 @app.get("/api/tasks/{task_id}/status")
@@ -1906,16 +1940,18 @@ def get_task_status(
     
     status_map = {
         "received": (1, 15),
-        "parsing": (2, 35),
-        "warning": (2, 35),
-        "service_call": (3, 55),
-        "suspend": (3, 50),
-        "clarify": (3, 55),
-        "evidence_collection": (4, 75),
-        "verifying": (5, 90),
-        "verification_complete": (6, 100),
-        "failed": (6, 100),
-        "completed": (6, 100)
+        "parsing": (2, 25),
+        "warning": (2, 25),
+        "validate_params": (3, 40),
+        "suspend": (3, 40),
+        "clarify": (3, 45),
+        "searching_db": (4, 55),
+        "service_call": (5, 70),
+        "evidence_collection": (6, 80),
+        "verifying": (7, 90),
+        "verification_complete": (8, 100),
+        "failed": (8, 100),
+        "completed": (8, 100)
     }
     
     if logs:

@@ -55,7 +55,7 @@ export function VerificationActivityChart() {
     return (
       <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
         <div className="flex items-center justify-between pb-3.5 border-b border-dash-border">
-          <h3 className="text-sm font-black text-dash-text tracking-tight">Verification Activity</h3>
+          <h3 className="text-sm font-black text-dash-text tracking-tight">Confidence Trend</h3>
           <div className="relative">
             <select
               value={filter}
@@ -72,7 +72,7 @@ export function VerificationActivityChart() {
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-2">
           <AlertTriangle className="w-8 h-8 text-dash-secondary/60" />
-          <span className="text-xs text-dash-secondary font-bold">No verification activity available.</span>
+          <span className="text-xs text-dash-secondary font-bold">No confidence trend data available.</span>
         </div>
       </div>
     );
@@ -112,7 +112,7 @@ export function VerificationActivityChart() {
   return (
     <div className="bg-dash-card border border-dash-border rounded-2xl p-5 text-left flex flex-col justify-between h-[300px] shadow-sm">
       <div className="flex items-center justify-between pb-3.5 border-b border-dash-border">
-        <h3 className="text-sm font-black text-dash-text tracking-tight">Verification Activity</h3>
+        <h3 className="text-sm font-black text-dash-text tracking-tight">Confidence Trend</h3>
         <div className="relative">
           <select
             value={filter}

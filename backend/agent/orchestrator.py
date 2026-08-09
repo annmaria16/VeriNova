@@ -63,7 +63,7 @@ def parse_intent_llm_or_fallback(raw_input: str) -> dict:
                     model="gpt-4o-mini",
                     response_format={"type": "json_object"},
                     messages=[
-                        {"role": "system", "content": "You are a task intent parser. Extract: task_type (payment, email, flight, hotel, movie, crm) and params (dict). Output JSON only."},
+                        {"role": "system", "content": "You are a task intent parser. Extract: task_type (payment, email, flight, hotel, movie, crm, shopping, booking) and params (dict). Output JSON only."},
                         {"role": "user", "content": raw_input}
                     ]
                 )
@@ -74,7 +74,7 @@ def parse_intent_llm_or_fallback(raw_input: str) -> dict:
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a task intent parser. Extract: task_type (payment, email, flight, hotel, movie, crm) and params (dict). Output JSON only."},
+                        {"role": "system", "content": "You are a task intent parser. Extract: task_type (payment, email, flight, hotel, movie, crm, shopping, booking) and params (dict). Output JSON only."},
                         {"role": "user", "content": raw_input}
                     ]
                 )
@@ -95,8 +95,83 @@ def parse_intent_llm_or_fallback(raw_input: str) -> dict:
     logger.info("Using regex fallback engine to parse intent...")
     text = raw_input.lower().strip()
     
+    # 6. Shopping Assistant
+    if any(k in text for k in ["buy", "find", "laptop", "iphone", "purchase", "product", "item", "shopping", "price", "macbook", "headphones", "smartwatch", "keyboard", "mouse", "monitor", "samsung", "dell", "hp", "sony", "logitech", "oneplus"]):
+        prod_name = None
+        for p in ["iphone 16", "samsung galaxy", "macbook pro", "dell xps", "hp pavilion", "sony headphones", "ipad air", "apple watch", "lg ultragear", "logitech mx keys", "logitech mx master", "oneplus 12", "laptop", "mouse", "keyboard", "monitor", "headphones", "smartwatch"]:
+            if p in text:
+                prod_name = p
+                break
+        
+        # Extract max price / budget
+        price_match = re.search(r'(?:under|below|budget|₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)', text)
+        max_price = None
+        if price_match:
+            match_str = price_match.group(0)
+            if any(k in match_str for k in ["under", "below", "budget", "₹", "rs", "inr"]):
+                max_price = float(price_match.group(1))
+            else:
+                spec_match = re.search(r'(?:under|below|budget|₹|rs\.?|inr)\s*(\d+(?:\.\d+)?)', text)
+                if spec_match:
+                    max_price = float(spec_match.group(1))
+                else:
+                    spec_match_2 = re.search(r'(\d+(?:\.\d+)?)\s*(?:rs|inr|rupees)', text)
+                    if spec_match_2:
+                        max_price = float(spec_match_2.group(1))
+
+        res_dict = {
+            "task_type": "shopping",
+            "params": {
+                "product_name": prod_name,
+                "max_price": max_price
+            }
+        }
+
+    # 7. Booking Assistant
+    elif any(k in text for k in ["turf", "court", "pool", "zoo", "cinema", "slot", "available"]):
+        s_name = None
+        for s in ["cricket turf", "football turf", "badminton court", "swimming pool", "zoo entry", "cinema hall", "turf", "court", "pool", "zoo", "cinema"]:
+            if s in text:
+                s_name = s
+                break
+                
+        # Extract date
+        from datetime import datetime, timedelta
+        date = None
+        if "tomorrow" in text:
+            date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        elif "day after" in text:
+            date = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d")
+        elif "today" in text:
+            date = datetime.now().strftime("%Y-%m-%d")
+        else:
+            date_match = re.search(r'\d{4}-\d{2}-\d{2}', text)
+            if date_match:
+                date = date_match.group(0)
+                
+        # Extract time
+        time = None
+        time_match = re.search(r'(\d+(?::\d+)?\s*(?:pm|am))', text)
+        if time_match:
+            time = time_match.group(1).upper()
+        elif "evening" in text:
+            time = "6 PM"
+        elif "morning" in text:
+            time = "10 AM"
+        elif "afternoon" in text:
+            time = "4 PM"
+
+        res_dict = {
+            "task_type": "booking",
+            "params": {
+                "service_name": s_name,
+                "date": date,
+                "time": time
+            }
+        }
+
     # 1. Payment / Refund
-    if any(k in text for k in ["refund", "pay", "charge", "payment"]):
+    elif any(k in text for k in ["refund", "pay", "charge", "payment"]):
         amount_match = re.search(r'(?:₹|\$|rs\.?|inr)?\s*(\d+(?:\.\d+)?)', text)
         amount = float(amount_match.group(1)) if amount_match else None
         
@@ -224,6 +299,8 @@ def parse_intent_llm_or_fallback(raw_input: str) -> dict:
             }
         }
 
+
+
     # Default fallback if nothing matches
     if res_dict is None:
         logger.info("Regex fallback engine could not identify task type. Using default 'movie' task fallback.")
@@ -249,8 +326,9 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
     """
     Simulates LangGraph state graph routing:
     parse_intent -> validate_params -> execute_service -> collect_evidence -> verify_outcome
-    Can be run asynchronously or synchronously.
+    Runs step-by-step with realistic delays (time.sleep) to let the frontend poll progress.
     """
+    import time
     logger.info(f"Triggering orchestrator agent execution for task_id: {task_id}")
     
     # 1. Retrieve or initialize execution state
@@ -277,11 +355,12 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
     state = AgentState(task_id, prompt_text)
     state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Task execution request received.")
     
-    # Write first task log
-    db.add(models.TaskLog(task_id=task_id, action="received", details="Task execution initialized."))
+    # Step 1: Received
+    db.add(models.TaskLog(task_id=task_id, action="received", details="Received user request: " + prompt_text))
     db.commit()
+    time.sleep(1.2)
 
-    # Node: parse_intent
+    # Step 2: Understanding request
     state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Analyzing task intent and query parameters...")
     parsed = parse_intent_llm_or_fallback(prompt_text)
     state.task_type = parsed.get("task_type")
@@ -289,7 +368,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
     # Merge existing parameters and clarification attempts if resuming clarification
     if exec_record.parsed_intent:
         existing_params = exec_record.parsed_intent.get("params", {})
-        # Only overwrite existing params with parsed params if the existing param is None or empty
         for k, v in parsed.get("params", {}).items():
             if existing_params.get(k) is None or existing_params.get(k) == "":
                 if v is not None and v != "":
@@ -300,28 +378,28 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
         state.params = parsed.get("params", {})
         state.clarification_attempts = parsed.get("clarification_attempts", {})
 
-    # Check if there is a parser warning to log
     if parsed.get("warning"):
         state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] {parsed.get('warning')}")
         db.add(models.TaskLog(task_id=task_id, action="warning", details=parsed.get("warning")))
         db.commit()
 
     state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Extracted intent task type: {state.task_type}")
-    
-    # Update Task fields based on parsed output
     task.task_type = state.task_type
     
-    db.add(models.TaskLog(task_id=task_id, action="parsing", details=f"Parsed intent. Task type: {state.task_type}. Params: {json.dumps(state.params)}"))
+    db.add(models.TaskLog(task_id=task_id, action="parsing", details=f"Parsing intent. Task type: {state.task_type}. Params: {json.dumps(state.params)}"))
     db.commit()
+    time.sleep(1.2)
 
-    # Node: validate_params
+    # Step 3: Checking required information
     required_keys = {
         "payment": ["amount", "order_id"],
         "email": ["to_email", "message"],
         "flight": ["origin", "destination", "date"],
         "hotel": ["destination", "date"],
         "movie": ["movie_name", "theater", "showtime"],
-        "crm": ["email", "status"]
+        "crm": ["email", "status"],
+        "shopping": ["product_name"],
+        "booking": ["service_name", "date", "time"]
     }
     
     req_fields = required_keys.get(state.task_type, [])
@@ -332,25 +410,28 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
         state.status = "Needs Clarification"
         state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Execution suspended: Missing required parameters: {', '.join(state.missing_params)}.")
         
-        # Save state to DB
         exec_record.parsed_intent = state.to_dict()
         exec_record.execution_status = "Needs Clarification"
-        
         task.status = "Needs Clarification"
         
         db.add(models.TaskLog(task_id=task_id, action="suspend", details=f"Suspended execution. Missing parameters: {', '.join(state.missing_params)}"))
         db.commit()
         return state.to_dict()
 
-    # Node: execute_service
-    state.status = "Running"
-    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Executing call to {state.task_type} service module...")
-    db.add(models.TaskLog(task_id=task_id, action="service_call", details=f"Calling backend service: {state.task_type}"))
+    db.add(models.TaskLog(task_id=task_id, action="validate_params", details="Checking required information: all parameters validated successfully."))
     db.commit()
-    
+    time.sleep(1.2)
+
+    # Step 4: Searching service/database
+    db.add(models.TaskLog(task_id=task_id, action="searching_db", details=f"Searching database for available {state.task_type} details..."))
+    db.commit()
+    time.sleep(1.2)
+
+    # Step 5: Executing action
+    state.status = "Running"
     selected_service = ""
     service_res = {}
-    db_check_data = {"success": True}  # default database check status
+    db_check_data = {"success": True}
 
     try:
         if state.task_type == "payment":
@@ -359,7 +440,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 amount=float(state.params["amount"]),
                 order_id=state.params["order_id"]
             )
-            # Database verification check for payment: check if order refund status is saved
             db_check_data = {
                 "success": service_res.get("status") == "refunded",
                 "match": service_res.get("status") == "refunded",
@@ -372,7 +452,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 to_email=state.params["to_email"],
                 message=state.params["message"]
             )
-            # Database check for email: check if send request logged in outbound table
             db_check_data = {
                 "success": service_res.get("status") == "sent",
                 "match": service_res.get("status") == "sent",
@@ -387,7 +466,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 date=state.params["date"],
                 origin=state.params.get("origin")
             )
-            # Database check: verify PNR generated and saved
             pnr = service_res.get("booking_id")
             db_check_data = {
                 "success": bool(pnr),
@@ -402,7 +480,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 theater=state.params["theater"],
                 showtime=state.params["showtime"]
             )
-            # If movie booking returns needs_clarification (e.g. theater not in dataset)
             if service_res.get("status") == "needs_clarification":
                 logger.info("Movie booking requested unavailable option. Suspending for clarification.")
                 state.status = "Needs Clarification"
@@ -414,7 +491,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                     state.missing_params = ["theater"]
                 state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Requested options unavailable. Suspended: {service_res.get('error')}")
                 
-                # Save state to DB
                 exec_record.parsed_intent = state.to_dict()
                 exec_record.execution_status = "Needs Clarification"
                 task.status = "Needs Clarification"
@@ -436,7 +512,6 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 status=state.params["status"],
                 db=db
             )
-            # Database check: query customer row directly from DB and assert status matches
             cust_row = db.query(models.Customer).filter(models.Customer.email == state.params["email"]).first()
             matched = cust_row is not None and cust_row.status == state.params["status"]
             db_check_data = {
@@ -444,6 +519,184 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
                 "match": matched,
                 "details": f"Direct SQL query for {state.params['email']} returned status: {cust_row.status if cust_row else 'None'} (Expected: {state.params['status']})"
             }
+
+        elif state.task_type == "shopping":
+            selected_service = "Shopping Service"
+            prod_name = state.params.get("product_name", "").lower()
+            max_p = state.params.get("max_price")
+            if max_p:
+                try:
+                    max_p = float(max_p)
+                except ValueError:
+                    max_p = None
+                    
+            query = db.query(models.Product).filter(models.Product.is_active == True)
+            if "laptop" in prod_name:
+                matches = query.filter(models.Product.name.ilike("%laptop%")).all()
+            else:
+                matches = query.filter(models.Product.name.ilike(f"%{prod_name}%")).all()
+                
+            if not matches:
+                matches = query.filter((models.Product.name.ilike(f"%{prod_name}%")) | (models.Product.category.ilike(f"%{prod_name}%"))).all()
+            
+            if max_p:
+                matches = [m for m in matches if m.price <= max_p]
+                
+            if len(matches) > 1:
+                state.status = "Needs Clarification"
+                state.missing_params = ["product_name"]
+                options_str = ", ".join([f"{m.name} (₹{m.price})" for m in matches])
+                service_res = {
+                    "status": "needs_clarification",
+                    "error": f"I found multiple product options: {options_str}. Which one do you want?"
+                }
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Ambiguous request. Suspended for clarification.")
+                exec_record.parsed_intent = state.to_dict()
+                exec_record.execution_status = "Needs Clarification"
+                task.status = "Needs Clarification"
+                db.add(models.TaskLog(task_id=task_id, action="suspend", details=f"Suspended. Multiple matches found: {options_str}"))
+                db.commit()
+                return state.to_dict()
+                
+            if not matches:
+                service_res = {
+                    "status": "failed",
+                    "error": f"No product found matching '{prod_name}'" + (f" under budget of ₹{max_p}" if max_p else "")
+                }
+                db_check_data = {
+                    "success": False,
+                    "match": False,
+                    "details": f"Checked products database. No active product matches name '{prod_name}'."
+                }
+            else:
+                product = matches[0]
+                if product.stock <= 0:
+                    service_res = {
+                        "status": "failed",
+                        "error": f"Product '{product.name}' is out of stock."
+                    }
+                    db_check_data = {
+                        "success": False,
+                        "match": False,
+                        "details": f"Checked stock for product {product.name} (ID: {product.id}). Stock count is {product.stock}."
+                    }
+                else:
+                    old_stock = product.stock
+                    product.stock -= 1
+                    db.commit()
+                    
+                    task.reference_id = str(product.id)
+                    
+                    service_res = {
+                        "status": "confirmed",
+                        "product_id": product.id,
+                        "product_name": product.name,
+                        "price": product.price,
+                        "remaining_stock": product.stock,
+                        "message": f"Successfully purchased {product.name} for ₹{product.price}."
+                    }
+                    db_check_data = {
+                        "success": True,
+                        "match": True,
+                        "details": f"Deducted stock for {product.name} (ID: {product.id}) from {old_stock} to {product.stock}. Reference recorded."
+                    }
+
+        elif state.task_type == "booking":
+            selected_service = "Booking Service"
+            s_name = state.params.get("service_name", "").lower()
+            date_str = state.params.get("date", "")
+            time_str = state.params.get("time", "").lower()
+            
+            services = db.query(models.BookingService).filter(models.BookingService.is_active == True).all()
+            matching_services = [s for s in services if s_name in s.service_name.lower() or s.service_name.lower() in s_name]
+            
+            if len(matching_services) > 1:
+                state.status = "Needs Clarification"
+                state.missing_params = ["service_name"]
+                options_str = " or ".join([s.service_name for s in matching_services])
+                service_res = {
+                    "status": "needs_clarification",
+                    "error": f"I found multiple turf services: {options_str}. Which one do you want to book?"
+                }
+                state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Ambiguous service name. Suspended for clarification.")
+                exec_record.parsed_intent = state.to_dict()
+                exec_record.execution_status = "Needs Clarification"
+                task.status = "Needs Clarification"
+                db.add(models.TaskLog(task_id=task_id, action="suspend", details=f"Suspended. Multiple matching services: {options_str}"))
+                db.commit()
+                return state.to_dict()
+                
+            if not matching_services:
+                service_res = {
+                    "status": "failed",
+                    "error": f"No booking service found matching '{s_name}'."
+                }
+                db_check_data = {
+                    "success": False,
+                    "match": False,
+                    "details": f"Checked booking services database. No active service matches '{s_name}'."
+                }
+            else:
+                service = matching_services[0]
+                hour = 18
+                if "10" in time_str or "morning" in time_str:
+                    hour = 10
+                elif "4" in time_str or "16" in time_str or "afternoon" in time_str:
+                    hour = 16
+                elif "11" in time_str:
+                    hour = 11
+                elif "6" in time_str or "18" in time_str or "evening" in time_str:
+                    hour = 18
+                
+                slots = db.query(models.BookingSlot).filter(models.BookingSlot.service_id == service.id).all()
+                matching_slot = None
+                for slot in slots:
+                    slot_date = slot.slot_time.strftime("%Y-%m-%d")
+                    slot_hour = slot.slot_time.hour
+                    if slot_date == date_str and slot_hour == hour:
+                        matching_slot = slot
+                        break
+                        
+                if not matching_slot:
+                    service_res = {
+                        "status": "failed",
+                        "error": f"No available time slot found for {service.service_name} on {date_str} at {time_str}."
+                    }
+                    db_check_data = {
+                        "success": False,
+                        "match": False,
+                        "details": f"Checked slots for service {service.service_name} (ID: {service.id}) on {date_str}. No matching slots found."
+                    }
+                elif not matching_slot.is_available:
+                    service_res = {
+                        "status": "failed",
+                        "error": f"The slot on {date_str} at {time_str} is already booked."
+                    }
+                    db_check_data = {
+                        "success": False,
+                        "match": False,
+                        "details": f"Checked slot ID {matching_slot.id} status. Slot is not available (is_available = False)."
+                    }
+                else:
+                    matching_slot.is_available = False
+                    db.commit()
+                    
+                    task.reference_id = str(matching_slot.id)
+                    
+                    service_res = {
+                        "status": "confirmed",
+                        "booking_id": f"BK-{matching_slot.id}",
+                        "service_name": service.service_name,
+                        "location": service.location,
+                        "slot_time": matching_slot.slot_time.isoformat(),
+                        "price": service.price,
+                        "message": f"Successfully booked {service.service_name} for {date_str} at {time_str}."
+                    }
+                    db_check_data = {
+                        "success": True,
+                        "match": True,
+                        "details": f"Updated booking slot ID {matching_slot.id} to is_available=False. Reference registered in task."
+                    }
 
     except Exception as e:
         logger.error(f"Error calling service: {str(e)}")
@@ -454,7 +707,14 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
     exec_record.selected_service = selected_service
     exec_record.model_name = "gpt-4o-mini" if os.getenv("OPENAI_API_KEY") else "Regex Fallback Engine"
     
-    # Node: collect_evidence
+    db.add(models.TaskLog(task_id=task_id, action="service_call", details=f"Action executed on {selected_service}. Result: {service_res.get('status') or 'failed'}"))
+    db.commit()
+    time.sleep(1.2)
+
+    # Step 6: Collecting evidence
+    db.add(models.TaskLog(task_id=task_id, action="evidence_collection", details="Collecting verification evidence: service payloads and database transaction logs gathered."))
+    db.commit()
+    
     state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Service returned response: {json.dumps(service_res)}")
     state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Gathering raw logs, database consistency hashes, and provider payloads...")
     
@@ -465,12 +725,14 @@ def execute_agent_workflow(task_id: str, db: Session, user_input: str = None) ->
         logs=state.logs,
         db=db
     )
+    time.sleep(1.2)
 
-    # Node: verify_outcome
-    state.logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Initiating VeriNova verification engines...")
-    db.add(models.TaskLog(task_id=task_id, action="verifying", details="Running outcome verifier computations"))
+    # Step 7: Verifying outcome
+    db.add(models.TaskLog(task_id=task_id, action="verifying", details="Initiating outcome verification. Comparing response payloads with database consistency states..."))
     db.commit()
+    time.sleep(1.2)
 
+    # Step 8: Completed
     ver_res = verify_task_outcome(task_id, db)
     
     state.status = "Completed"
