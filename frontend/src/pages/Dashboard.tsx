@@ -418,6 +418,14 @@ export default function Dashboard() {
         isValid = false;
         errorMsg = "Please select or enter a valid status (premium, active, basic, disabled, inactive).";
       }
+    } else if (fieldName === "product_name") {
+      if (/^\d+$/.test(value)) {
+        isValid = false;
+        errorMsg = "Please enter a valid product name. It cannot be purely numeric.";
+      } else if (value.length < 2) {
+        isValid = false;
+        errorMsg = "Please enter a valid product name. It must be at least 2 characters long.";
+      }
     }
 
     if (!isValid) {
