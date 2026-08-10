@@ -109,6 +109,23 @@ export default function Dashboard() {
   const [verificationLogs, setVerificationLogs] = useState<string[]>([]);
   const [activeRunningTaskId, setActiveRunningTaskId] = useState<string | null>(null);
   const [verificationResultDetails, setVerificationResultDetails] = useState<any | null>(null);
+  
+  // Scorecard breakdown helper
+  const scorecardBreakdown = verificationResultDetails ? (verificationResultDetails.breakdown || {
+    service_response: verificationResultDetails.confidence_score >= 50 ? 50 : 0,
+    database_check: (verificationResultDetails.confidence_score >= 80 || (verificationResultDetails.confidence_score >= 30 && verificationResultDetails.confidence_score !== 50)) ? 30 : 0,
+    logs: (verificationResultDetails.confidence_score >= 100 || (verificationResultDetails.confidence_score >= 20 && verificationResultDetails.confidence_score !== 50 && verificationResultDetails.confidence_score !== 80)) ? 20 : 0,
+    additional_verification: 0,
+    contradiction_penalty: 0
+  }) : {
+    service_response: 0,
+    database_check: 0,
+    logs: 0,
+    additional_verification: 0,
+    contradiction_penalty: 0
+  };
+  const scorecardChecksPerformed = verificationResultDetails ? (verificationResultDetails.checks_performed || 4) : 4;
+
   const [clarificationFieldName, setClarificationFieldName] = useState<string | null>(null);
   const [clarificationValue, setClarificationValue] = useState<string>("");
   const [clarificationError, setClarificationError] = useState<string | null>(null);
@@ -1051,7 +1068,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25 }}
-              className="bg-dash-sidebar border border-dash-border rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl relative z-10 flex flex-col p-6 text-left"
+              className="bg-dash-sidebar border border-dash-border rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative z-10 flex flex-col p-6 text-left"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-dash-border mb-5">
@@ -1070,9 +1087,9 @@ export default function Dashboard() {
               </div>
 
               {/* Grid content */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 overflow-y-auto max-h-[450px] pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 overflow-y-auto max-h-[480px] pr-1">
                 {/* Left side: Circular gauge */}
-                <div className="md:col-span-5 flex flex-col items-center justify-center bg-dash-bg/40 rounded-2xl p-4 border border-dash-border">
+                <div className="md:col-span-5 flex flex-col items-center justify-center bg-dash-bg/40 rounded-2xl p-4 border border-dash-border h-fit">
                   <div className="relative w-28 h-28 flex items-center justify-center select-none">
                     <svg className="w-full h-full transform -rotate-90">
                       <defs>
@@ -1110,9 +1127,11 @@ export default function Dashboard() {
                     <div className="absolute flex flex-col items-center">
                       <span className="text-2xl font-black text-dash-text tracking-tight">{verificationResultDetails.confidence_score}%</span>
                       <span className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${
-                        verificationResultDetails.confidence_score >= 80 ? "text-[#FF6B00]" : "text-[#EF4444]"
+                        verificationResultDetails.status === "Verified" ? "text-green-500" :
+                        verificationResultDetails.status === "Needs Review" ? "text-yellow-500" : "text-[#EF4444]"
                       }`}>
-                        {verificationResultDetails.confidence_score >= 80 ? "VERIFIED" : "FAILED"}
+                        {verificationResultDetails.status === "Verified" ? "VERIFIED" :
+                         verificationResultDetails.status === "Needs Review" ? "REVIEW REQ" : "FAILED"}
                       </span>
                     </div>
                   </div>
@@ -1126,31 +1145,84 @@ export default function Dashboard() {
                   }`}>
                     {verificationResultDetails.status}
                   </span>
+                  
+                  <span className="text-[9px] text-dash-secondary font-black uppercase tracking-widest mt-3.5 bg-dash-bg/25 border border-dash-border/45 px-2.5 py-1 rounded-md">
+                    Checks: {scorecardChecksPerformed} Performed
+                  </span>
                 </div>
 
-                {/* Right side: Evidence Checklist */}
-                <div className="md:col-span-7 space-y-4">
-                  <h4 className="text-[10px] font-black text-dash-secondary uppercase tracking-wider">Evidence Telemetry</h4>
-                  
-                  <div className="space-y-2.5">
-                    {verificationResultDetails.evidence && verificationResultDetails.evidence.map((ev: any) => {
-                      const isPassed = ev.type === "logs" || (ev.type === "api_response" && ["refunded", "sent", "confirmed", "updated"].includes(ev.data?.status)) || (ev.type === "database_check" && (ev.data?.success || ev.data?.match));
-                      return (
-                        <div key={ev.id} className="flex items-start gap-3 bg-dash-bg/40 p-2.5 rounded-xl border border-dash-border text-xs">
-                          {isPassed ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          ) : (
-                            <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                          )}
-                          <div className="min-w-0">
-                            <span className="font-bold text-dash-text block capitalize">{ev.type.replace("_", " ")}</span>
-                            <p className="text-[10px] text-dash-secondary font-semibold truncate leading-relaxed mt-0.5">
-                              {ev.type === "api_response" ? `Service: ${ev.data?.service}. Status: ${ev.data?.status}` : ev.data?.details || "Logs verification successful."}
-                            </p>
-                          </div>
+                {/* Right side: Score Breakdown & Evidence Checklist */}
+                <div className="md:col-span-7 space-y-5">
+                  {/* Score Breakdown Section */}
+                  <div>
+                    <h4 className="text-[10px] font-black text-dash-secondary uppercase tracking-wider mb-2.5">Confidence Point Allocation</h4>
+                    <div className="space-y-2 bg-dash-bg/25 p-3 rounded-2xl border border-dash-border text-xs">
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="text-dash-secondary">Service Integration (Max 50)</span>
+                        <span className="text-dash-text font-black">
+                          {scorecardBreakdown.service_response >= 0 ? `+${scorecardBreakdown.service_response}` : scorecardBreakdown.service_response} pts
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="text-dash-secondary">Database Consistency (Max 30)</span>
+                        <span className="text-dash-text font-black">
+                          {scorecardBreakdown.database_check >= 0 ? `+${scorecardBreakdown.database_check}` : scorecardBreakdown.database_check} pts
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between font-bold">
+                        <span className="text-dash-secondary">Execution Logs Audit (Max 20)</span>
+                        <span className="text-dash-text font-black">
+                          {scorecardBreakdown.logs >= 0 ? `+${scorecardBreakdown.logs}` : scorecardBreakdown.logs} pts
+                        </span>
+                      </div>
+                      
+                      {scorecardBreakdown.additional_verification > 0 && (
+                        <div className="flex items-center justify-between font-bold text-green-500 border-t border-dash-border/30 pt-1.5 mt-1.5">
+                          <span>Adaptive Verification Check</span>
+                          <span className="font-black text-[#22C55E]">
+                            +{scorecardBreakdown.additional_verification} pts
+                          </span>
                         </div>
-                      );
-                    })}
+                      )}
+                      
+                      {scorecardBreakdown.contradiction_penalty < 0 && (
+                        <div className="flex items-center justify-between font-bold text-red-400 border-t border-dash-border/30 pt-1.5 mt-1.5">
+                          <span>Evidence Contradiction Penalty</span>
+                          <span className="font-black text-[#EF4444]">
+                            {scorecardBreakdown.contradiction_penalty} pts
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Telemetry Evidence checklist */}
+                  <div>
+                    <h4 className="text-[10px] font-black text-dash-secondary uppercase tracking-wider mb-2.5">Evidence Telemetry</h4>
+                    <div className="space-y-2">
+                      {verificationResultDetails.evidence && verificationResultDetails.evidence.map((ev: any) => {
+                        const isPassed = ev.type === "logs" || 
+                                         ev.type === "reference_record" || 
+                                         (ev.type === "api_response" && ["refunded", "sent", "confirmed", "updated"].includes(ev.data?.status)) || 
+                                         (ev.type === "database_check" && (ev.data?.success || ev.data?.match));
+                        
+                        return (
+                          <div key={ev.id} className="flex items-start gap-3 bg-dash-bg/40 p-2.5 rounded-xl border border-dash-border text-xs">
+                            {isPassed ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <span className="font-bold text-dash-text block capitalize">{ev.type.replace("_", " ")}</span>
+                              <p className="text-[10px] text-dash-secondary font-semibold truncate leading-relaxed mt-0.5">
+                                {ev.type === "api_response" ? `Service: ${ev.data?.service}. Status: ${ev.data?.status}` : ev.data?.details || `${ev.type.replace("_", " ")} verified successfully.`}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>

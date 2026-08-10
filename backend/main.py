@@ -110,6 +110,10 @@ def startup_db_migration():
             # Reports migrations
             connection.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS report_path VARCHAR(500) NULL"))
             
+            # VerificationResult migrations
+            connection.execute(text("ALTER TABLE verification_results ADD COLUMN IF NOT EXISTS breakdown JSONB NULL"))
+            connection.execute(text("ALTER TABLE verification_results ADD COLUMN IF NOT EXISTS checks_performed INTEGER NULL DEFAULT 0"))
+            
             connection.commit()
             logger.info("Successfully completed all startup DB migrations.")
         except Exception as e:
@@ -2008,6 +2012,8 @@ def get_task_result(
         "confidence_score": ver_res.confidence_score if ver_res else (task.confidence or 0.0),
         "summary": ver_res.summary if ver_res else "No verification summary compiled yet.",
         "verified_at": ver_res.verified_at.isoformat() if ver_res else None,
+        "breakdown": ver_res.breakdown if ver_res else None,
+        "checks_performed": ver_res.checks_performed if ver_res else 0,
         "evidence": [
             {
                 "id": ev.id,

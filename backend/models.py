@@ -215,6 +215,8 @@ class VerificationResult(Base):
     confidence_score = Column(Float, nullable=False)
     summary = Column(String(500), nullable=True)
     verified_at = Column(DateTime, nullable=False, server_default=func.now())
+    breakdown = Column(JSONB, nullable=True)
+    checks_performed = Column(Integer, nullable=True, default=0)
 
 
 class TaskLog(Base):
