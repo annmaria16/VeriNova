@@ -6,7 +6,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Create Account"
-      subtitle="Start using your personal AI booking & verification assistant"
+      subtitle="Start using VeriNova AI outcome verification"
     >
       <RegisterForm />
       <SocialLogin dividerText="or sign up with" />

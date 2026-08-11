@@ -9,8 +9,6 @@ interface UserProfile {
   provider: string;
   created_at: string;
   avatar_url?: string | null;
-  role?: string;
-  organization_id?: number | null;
 }
 
 interface AuthContextType {

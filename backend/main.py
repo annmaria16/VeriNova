@@ -69,36 +69,8 @@ app.add_middleware(
 )
 
 @app.on_event("startup")
-def startup_db_migration():
-    logger.info("Running startup DB migration to clean up obsolete tables and columns")
-    with engine.connect() as connection:
-        try:
-            # Drop obsolete tables in dependency order
-            obsolete_tables = [
-                "purchase_records", "booking_records", "booking_slots", "booking_services",
-                "products", "customers", "task_logs", "verification_results", "evidence",
-                "agent_executions", "user_settings", "reports", "notifications",
-                "verification_logs", "tasks", "password_reset_otps", "password_reset_tokens",
-                "organizations"
-            ]
-            for table in obsolete_tables:
-                connection.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
-            
-            # Remove obsolete columns from users table
-            connection.execute(text("ALTER TABLE users DROP COLUMN IF EXISTS organization_id CASCADE"))
-            connection.execute(text("ALTER TABLE users DROP COLUMN IF EXISTS role CASCADE"))
-            connection.execute(text("ALTER TABLE users DROP COLUMN IF EXISTS reset_token CASCADE"))
-            connection.execute(text("ALTER TABLE users DROP COLUMN IF EXISTS reset_token_expires CASCADE"))
-            
-            # Make sure password column is nullable
-            connection.execute(text("ALTER TABLE users ALTER COLUMN password DROP NOT NULL"))
-            
-            connection.commit()
-            logger.info("Database cleanup completed successfully.")
-        except Exception as e:
-            logger.error(f"Migration error: {e}")
-            
-    # Re-create only the simplified auth tables
+def startup_db():
+    logger.info("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
 
 
