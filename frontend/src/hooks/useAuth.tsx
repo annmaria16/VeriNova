@@ -58,19 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
           setIsAuthenticated(false);
           const publicPaths = [
+            "/",
             "/login",
             "/register",
             "/signup",
-            "/forgot-password",
-            "/reset-password",
-            "/verify-otp",
-            "/auth/callback",
-            "/",
-            "/terms",
-            "/privacy",
-            "/cookies",
-            "/about",
-            "/contact"
+            "/auth/callback"
           ];
           if (!publicPaths.includes(window.location.pathname)) {
             window.location.href = "/login?expired=true";

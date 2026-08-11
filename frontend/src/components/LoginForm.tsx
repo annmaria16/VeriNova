@@ -70,8 +70,8 @@ export default function LoginForm() {
     try {
       await login(formData.email, formData.password);
       toast("Successfully signed in!", "success");
-      // Success! Navigate to dashboard
-      navigate("/dashboard", { replace: true });
+      // Success! Navigate to home
+      navigate("/", { replace: true });
     } catch (err: any) {
       const errMsg = err.message || "Failed to sign in. Please try again.";
       setSubmitError(errMsg);
@@ -149,12 +149,7 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Forgot Password */}
-      <div className="flex items-center justify-end text-xs sm:text-sm mt-1">
-        <Link to="/forgot-password" className="text-dash-primary hover:text-dash-hover transition-colors font-bold">
-          Forgot Password?
-        </Link>
-      </div>
+
 
       {/* Submit Action */}
       <button

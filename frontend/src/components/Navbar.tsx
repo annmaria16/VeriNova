@@ -85,7 +85,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 lg:px-8 py-4">
         {/* Logo */}
         <Link
-          to={isAuthenticated ? "/dashboard" : "/"}
+          to="/"
           onClick={(e) => {
             if (isAuthenticated) {
               return;
@@ -138,10 +138,10 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               <Link
-                to="/dashboard"
+                to="/"
                 className="text-dash-text hover:text-dash-primary px-4 py-2 font-semibold text-sm transition-colors duration-200"
               >
-                Dashboard
+                Home
               </Link>
               <button
                 onClick={() => {
@@ -209,11 +209,11 @@ export default function Navbar() {
               {isAuthenticated ? (
                 <>
                   <Link
-                    to="/dashboard"
+                    to="/"
                     onClick={() => setMenuOpen(false)}
                     className="w-full border border-dash-border bg-dash-card rounded-xl py-2.5 text-dash-text hover:bg-dash-primary/5 transition-colors text-center font-bold"
                   >
-                    Dashboard
+                    Home
                   </Link>
                   <button
                     onClick={() => {

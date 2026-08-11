@@ -35,11 +35,11 @@ export default function OAuthCallback() {
         setStatusText("Verifying credentials and exchanging tokens...");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        setStatusText("Initializing secure dashboard session...");
+        setStatusText("Initializing secure session...");
         await setSessionToken(token);
 
         toast("Successfully authenticated!", "success");
-        navigate("/dashboard", { replace: true });
+        navigate("/", { replace: true });
       } catch (err: any) {
         console.error(err);
         const errMsg = err.message || "Failed to complete authentication. Please try again.";

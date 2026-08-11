@@ -14,7 +14,6 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeTerms: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -66,9 +65,7 @@ export default function RegisterForm() {
     ? "Passwords do not match."
     : "";
 
-  const isAgreeTermsValid = formData.agreeTerms;
-
-  const isFormValid = isFullNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && isAgreeTermsValid;
+  const isFormValid = isFullNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -246,28 +243,7 @@ export default function RegisterForm() {
         )}
       </div>
 
-      {/* Terms Agreement Checkbox */}
-      <div className="flex flex-col gap-1 mt-1">
-        <label className="flex items-start gap-2.5 text-xs sm:text-sm text-dash-secondary cursor-pointer select-none">
-          <input
-            type="checkbox"
-            name="agreeTerms"
-            checked={formData.agreeTerms}
-            onChange={handleInputChange}
-            className="w-4.5 h-4.5 rounded border-dash-border text-dash-primary focus:ring-0 focus:ring-offset-0 bg-dash-bg transition-all cursor-pointer accent-dash-primary mt-0.5"
-          />
-          <span className="leading-relaxed font-semibold">
-            I agree to the{" "}
-            <Link to="/terms" target="_blank" className="text-dash-primary hover:text-dash-hover transition-colors font-bold underline">
-              Terms & Conditions
-            </Link>{" "}
-            &{" "}
-            <Link to="/privacy" target="_blank" className="text-dash-primary hover:text-dash-hover transition-colors font-bold underline">
-              Privacy Policy
-            </Link>
-          </span>
-        </label>
-      </div>
+
 
       {/* Submit Button */}
       <button

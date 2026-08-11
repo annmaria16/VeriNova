@@ -49,9 +49,8 @@ export default function Hero() {
 
           {/* Subheading */}
           <p className="mt-6 text-dash-secondary text-base sm:text-lg leading-relaxed max-w-xl font-bold">
-            Empower your automated systems with independent validation.
-            VeriNova uses multi-source evidence collection, confidence scoring,
-            and cryptographic logs to certify AI decisions in real time.
+            VeriNova is an AI outcome verification platform designed to help
+            users validate automated decisions before trusting them.
           </p>
 
           {/* Action Buttons */}

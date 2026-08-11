@@ -45,18 +45,18 @@ export default function Footer() {
   ];
 
   const companyLinks = [
-    { name: "About Us", to: "/about" },
+    { name: "About Us", href: "#about" },
     { name: "FAQ", href: "#faq" },
-    { name: "Contact", to: "/contact" },
+    { name: "Contact", href: "#contact" },
     { name: "Security", href: "#" },
   ];
 
   const resourceLinks = [
     { name: "Documentation", href: "#" },
     { name: "GitHub", href: "https://github.com" },
-    { name: "Privacy Policy", to: "/privacy" },
-    { name: "Terms & Conditions", to: "/terms" },
-    { name: "Cookie Policy", to: "/cookies" },
+    { name: "Privacy Policy", href: "#" },
+    { name: "Terms & Conditions", href: "#" },
+    { name: "Cookie Policy", href: "#" },
   ];
 
   return (
@@ -67,7 +67,7 @@ export default function Footer() {
         {/* Brand Column */}
         <div className="lg:col-span-2 flex flex-col gap-5 text-left">
           <Link
-            to={isAuthenticated ? "/dashboard" : "/"}
+            to="/"
             className="flex items-center gap-3 cursor-pointer group"
             onClick={(e) => {
               if (isAuthenticated) {
@@ -176,23 +176,13 @@ export default function Footer() {
           <ul className="flex flex-col gap-2 text-sm text-dash-secondary font-semibold">
             {companyLinks.map((link) => (
               <li key={link.name}>
-                {link.to ? (
-                  <Link
-                    to={link.to}
-                    onClick={() => window.scrollTo(0, 0)}
-                    className="hover:text-dash-primary transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                ) : (
-                  <a
-                    href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href || "#")}
-                    className="hover:text-dash-primary transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                )}
+                <a
+                  href={link.href}
+                  onClick={(e) => handleLinkClick(e, link.href || "#")}
+                  className="hover:text-dash-primary transition-colors duration-200"
+                >
+                  {link.name}
+                </a>
               </li>
             ))}
           </ul>
@@ -204,25 +194,15 @@ export default function Footer() {
           <ul className="flex flex-col gap-2 text-sm text-dash-secondary font-semibold">
             {resourceLinks.map((link) => (
               <li key={link.name}>
-                {link.to ? (
-                  <Link
-                    to={link.to}
-                    onClick={() => window.scrollTo(0, 0)}
-                    className="hover:text-dash-primary transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                ) : (
-                  <a
-                    href={link.href}
-                    target={link.href && link.href.startsWith("http") ? "_blank" : undefined}
-                    rel={link.href && link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    onClick={(e) => link.href && handleLinkClick(e, link.href)}
-                    className="hover:text-dash-primary transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                )}
+                <a
+                  href={link.href}
+                  target={link.href && link.href.startsWith("http") ? "_blank" : undefined}
+                  rel={link.href && link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  onClick={(e) => link.href && handleLinkClick(e, link.href)}
+                  className="hover:text-dash-primary transition-colors duration-200"
+                >
+                  {link.name}
+                </a>
               </li>
             ))}
           </ul>

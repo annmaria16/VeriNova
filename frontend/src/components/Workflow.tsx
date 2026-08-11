@@ -1,45 +1,35 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Cpu, Search, Scale, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Cpu, Search, Scale, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function Workflow() {
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
     {
-      title: "1. You Ask",
-      desc: "Natural language request",
-      icon: User,
-    },
-    {
-      title: "2. AI Understands",
-      desc: "Intent & parameters",
+      title: "1. AI Executes",
+      desc: "System runs automated task",
       icon: Cpu,
     },
     {
-      title: "3. AI Searches",
-      desc: "Available services/data",
+      title: "2. Intercept Outcome",
+      desc: "VeriNova intercepts response",
       icon: Search,
     },
     {
-      title: "4. AI Compares",
-      desc: "Price, rating, availability",
+      title: "3. Evidence Audit",
+      desc: "Verify logs & DB events",
       icon: Scale,
     },
     {
-      title: "5. AI Executes",
-      desc: "Books, buys or performs the task",
-      icon: Sparkles,
-    },
-    {
-      title: "6. VeriNova Verifies",
-      desc: "Independent evidence check",
+      title: "4. Confidence Score",
+      desc: "Calculate certainty rating",
       icon: ShieldCheck,
       isCore: true,
     },
     {
-      title: "7. You Get Result",
-      desc: "Verified outcome",
+      title: "5. Safe Commit",
+      desc: "Decision finalized or blocked",
       icon: CheckCircle2,
     },
   ];
@@ -91,7 +81,7 @@ export default function Workflow() {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 w-full">
             {steps.map((step, idx) => {
               const Icon = step.icon;
               const isActive = activeStep === idx;
