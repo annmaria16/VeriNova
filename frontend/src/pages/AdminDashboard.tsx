@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
@@ -18,13 +18,10 @@ import {
   Moon,
   ChevronDown,
   ShieldCheck,
-  AlertTriangle,
   Clock,
   Check,
   X,
-  Layers,
-  Activity,
-  UserCheck
+  Layers
 } from "lucide-react";
 
 export default function AdminDashboard() {
