@@ -2,10 +2,25 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, LogOut, User, Mail, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 export default function Welcome() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user) {
+        if (user.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   const handleSignOut = () => {
     logout();

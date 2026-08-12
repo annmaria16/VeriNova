@@ -1245,3 +1245,40 @@ def admin_get_tasks(
     )
 
     return tasks
+
+
+# ============================================================
+# ADMIN - UPDATE TASK STATUS
+# ============================================================
+
+@app.put(
+    "/api/admin/tasks/{task_id}/status",
+    response_model=schemas.TaskResponse
+)
+def admin_update_task_status(
+    task_id: int,
+    status_in: schemas.TaskStatusUpdate,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(
+        auth.get_current_admin
+    )
+):
+
+    task = (
+        db.query(core_models.Task)
+        .filter(core_models.Task.id == task_id)
+        .first()
+    )
+
+    if not task:
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found."
+        )
+
+    task.status = status_in.status
+    db.commit()
+    db.refresh(task)
+
+    return task

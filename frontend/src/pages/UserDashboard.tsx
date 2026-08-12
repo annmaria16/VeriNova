@@ -5,12 +5,13 @@ import { useTheme } from "../hooks/useTheme";
 import { useToast } from "../hooks/useToast";
 import api from "../services/api";
 import {
-  ShieldAlert,
-  Users,
+  LayoutDashboard,
   CheckCircle2,
-  Package,
-  ShoppingCart,
+  FileText,
+  Activity,
+  User,
   Settings,
+  HelpCircle,
   LogOut,
   Search,
   Bell,
@@ -20,20 +21,19 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
-  Check,
-  X,
+  UploadCloud,
+  Briefcase,
   Layers,
-  Activity,
-  UserCheck
+  Check,
+  X
 } from "lucide-react";
 
-export default function AdminDashboard() {
+export default function UserDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
 
-  const [users, setUsers] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,24 +41,20 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Load real-time admin statistics
-  const loadData = async () => {
+  // Fetch tasks/verifications from backend API
+  const fetchTasks = async () => {
     try {
-      const [usersRes, tasksRes] = await Promise.all([
-        api.get("/admin/users"),
-        api.get("/admin/tasks")
-      ]);
-      setUsers(usersRes.data);
-      setTasks(tasksRes.data);
+      const response = await api.get("/tasks");
+      setTasks(response.data);
     } catch (error) {
-      console.error("Failed to load admin dashboard statistics", error);
+      console.error("Failed to fetch tasks", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    fetchTasks();
   }, []);
 
   if (!user) {
@@ -71,51 +67,42 @@ export default function AdminDashboard() {
     toast("Logged out successfully", "success");
   };
 
-  const handleAction = (actionName: string) => {
-    toast(`Launched Admin Tool: ${actionName}`, "success");
+  const handleQuickAction = (actionName: string) => {
+    toast(`Launched: ${actionName}`, "success");
   };
 
-  // Real Database task approval/rejection
-  const handleApprove = async (id: number, name: string) => {
+  // Create real task/verification
+  const handleStartVerification = async () => {
+    const title = prompt("Enter verification request title (e.g. Passport ID Verification):");
+    if (!title) return;
+    const type = prompt("Enter task type (e.g. Identity, Business, Document):") || "Identity";
+    const description = prompt("Enter verification details (optional):") || "";
+
     try {
-      await api.put(`/admin/tasks/${id}/status`, { status: "approved" });
-      toast(`Approved verification for ${name}`, "success");
-      loadData();
+      await api.post("/tasks", {
+        title,
+        description,
+        task_type: type
+      });
+      toast("Verification request submitted successfully!", "success");
+      fetchTasks();
     } catch (err) {
-      toast("Failed to approve task status", "error");
+      toast("Failed to submit verification request", "error");
     }
   };
 
-  const handleReject = async (id: number, name: string) => {
-    try {
-      await api.put(`/admin/tasks/${id}/status`, { status: "rejected" });
-      toast(`Rejected verification for ${name}`, "error");
-      loadData();
-    } catch (err) {
-      toast("Failed to reject task status", "error");
-    }
-  };
-
-  // Mock Notifications for Admin
+  // Mock Notifications
   const notifications = [
-    { id: 1, text: "Platform connection established.", time: "Just now", unread: true },
+    { id: 1, text: "Your verification history is loaded.", time: "Just now", unread: true },
   ];
 
-  // User Map to map tasks to actual registered users' names
-  const userMap = new Map(users.map((u: any) => [u.id, u.fullname]));
-
-  // Stats computations from database records
-  const totalUsers = users.filter((u: any) => u.role === "user").length;
+  // Stats computations based on real API data
   const totalVerifications = tasks.length;
-  const activeProducts = 0; // Backend does not support product tables
-  const pendingOrders = 0; // Backend does not support order tables
+  const completedVerifications = tasks.filter((t) => t.status === "completed" || t.status === "approved").length;
+  const inProgressVerifications = tasks.filter((t) => ["pending", "received", "executing", "verifying", "in_progress"].includes(t.status)).length;
+  const rejectedVerifications = tasks.filter((t) => t.status === "failed" || t.status === "rejected").length;
 
-  // Filter tasks that are pending review
-  const pendingTasks = tasks.filter((t) => 
-    ["pending", "received", "executing", "verifying", "in_progress"].includes(t.status)
-  );
-
-  // Group task volume by month for SVG Chart
+  // Monthly breakdown for SVG Area Chart from real tasks
   const monthlyCounts = Array(12).fill(0);
   tasks.forEach((t) => {
     const date = new Date(t.created_at);
@@ -126,8 +113,10 @@ export default function AdminDashboard() {
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
   const maxCount = Math.max(...monthlyCounts.slice(0, 8), 1);
+  
   const points = months.map((month, idx) => {
     const count = monthlyCounts[idx];
+    // Map count to SVG height (range y: 40 to 220, where 220 is count=0, 40 is max count)
     const y = 220 - (count / maxCount) * 160;
     const x = 50 + idx * 85;
     return { x, y, label: month, value: count };
@@ -143,60 +132,85 @@ export default function AdminDashboard() {
     fillPath = `${path} L ${points[points.length - 1].x} 220 L ${points[0].x} 220 Z`;
   }
 
-  // Filter requests based on search
-  const filteredPending = pendingTasks.filter(t => 
+  // Account verification status badge logic
+  const hasCompleted = tasks.some(t => t.status === "completed" || t.status === "approved");
+  const hasPending = tasks.some(t => ["pending", "received", "executing", "verifying", "in_progress"].includes(t.status));
+
+  let statusBadge = "Unverified";
+  let statusText = "Your account is not verified yet.";
+  let statusDesc = "Please submit your first verification request to activate verification features.";
+  let statusBadgeClass = "unverified-pill";
+
+  if (hasCompleted) {
+    statusBadge = "Verified";
+    statusText = "Your account is fully verified.";
+    statusDesc = "Thank you for being a trusted user on the VeriNova platform.";
+    statusBadgeClass = "verified-pill";
+  } else if (hasPending) {
+    statusBadge = "Pending";
+    statusText = "Verification is in progress.";
+    statusDesc = "Our agents are currently verifying your submitted documents.";
+    statusBadgeClass = "pending-pill";
+  }
+
+  // Filter tasks based on search query
+  const filteredTasks = tasks.filter(t => 
     t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.task_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (userMap.get(t.user_id) || "").toLowerCase().includes(searchQuery.toLowerCase())
+    t.task_type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="admin-dashboard">
+    <div className="user-dashboard">
       {/* =====================================================
           SIDEBAR
       ===================================================== */}
-      <aside className="admin-sidebar">
-        <div className="admin-logo">
-          <span className="admin-logo-mark">V</span>
+      <aside className="dashboard-sidebar">
+        <div className="dashboard-logo">
+          <span className="logo-mark">V</span>
           <div>
             <h2>VeriNova</h2>
-            <span>Admin Center</span>
+            <span>User Portal</span>
           </div>
         </div>
 
-        <nav className="admin-nav">
-          <button className="admin-nav-item active">
-            <Layers size={18} />
-            <span>Overview</span>
+        <nav className="dashboard-nav">
+          <button className="nav-item active">
+            <LayoutDashboard size={18} />
+            <span>Dashboard</span>
           </button>
 
-          <button className="admin-nav-item" onClick={() => handleAction("User Management")}>
-            <Users size={18} />
-            <span>Users</span>
-          </button>
-
-          <button className="admin-nav-item" onClick={() => handleAction("Verification Requests Queue")}>
+          <button className="nav-item" onClick={() => handleQuickAction("Verifications List")}>
             <CheckCircle2 size={18} />
             <span>Verifications</span>
           </button>
 
-          <button className="admin-nav-item" onClick={() => handleAction("Product Inventory")}>
-            <Package size={18} />
-            <span>Products</span>
+          <button className="nav-item" onClick={() => handleQuickAction("My Documents")}>
+            <FileText size={18} />
+            <span>My Documents</span>
           </button>
 
-          <button className="admin-nav-item" onClick={() => handleAction("Orders database")}>
-            <ShoppingCart size={18} />
-            <span>Orders</span>
+          <button className="nav-item" onClick={() => handleQuickAction("Activity logs")}>
+            <Activity size={18} />
+            <span>Activity</span>
           </button>
 
-          <button className="admin-nav-item" onClick={() => handleAction("Settings panel")}>
+          <button className="nav-item" onClick={() => handleQuickAction("Profile details")}>
+            <User size={18} />
+            <span>Profile</span>
+          </button>
+
+          <button className="nav-item" onClick={() => handleQuickAction("Settings panel")}>
             <Settings size={18} />
             <span>Settings</span>
           </button>
+
+          <button className="nav-item" onClick={() => handleQuickAction("Help Center")}>
+            <HelpCircle size={18} />
+            <span>Help & Support</span>
+          </button>
         </nav>
 
-        <button className="admin-logout" onClick={handleLogout}>
+        <button className="logout-button" onClick={handleLogout}>
           <LogOut size={16} />
           <span>Logout</span>
         </button>
@@ -205,13 +219,13 @@ export default function AdminDashboard() {
       {/* =====================================================
           MAIN CONTENT
       ===================================================== */}
-      <main className="admin-main">
+      <main className="dashboard-main">
         {/* Header */}
-        <header className="admin-header">
+        <header className="dashboard-header">
           <div className="header-welcome">
-            <h1>Admin Control Panel 👑</h1>
-            <p className="admin-subtitle">
-              Monitor and manage the VeriNova platform statistics:
+            <h1>Welcome back, {user.fullname.split(" ")[0]}! 👋</h1>
+            <p className="dashboard-subtitle">
+              Here's what's happening with your verifications today:
             </p>
           </div>
 
@@ -221,14 +235,14 @@ export default function AdminDashboard() {
               <Search size={16} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search requests..."
+                placeholder="Search verifications..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
             {/* Theme Toggle */}
-            <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle Theme">
+            <button onClick={toggleTheme} className="header-action-btn" aria-label="Toggle Theme">
               {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
             </button>
 
@@ -246,7 +260,7 @@ export default function AdminDashboard() {
               {showNotifications && (
                 <div className="notifications-dropdown glass-panel">
                   <div className="dropdown-header">
-                    <h3>System Alerts</h3>
+                    <h3>Notifications</h3>
                     <button onClick={() => setShowNotifications(false)} className="close-btn"><X size={14} /></button>
                   </div>
                   <div className="dropdown-body">
@@ -261,26 +275,32 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Admin Profile Chip */}
+            {/* User Profile Chip */}
             <div className="profile-chip-wrapper">
               <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="profile-chip">
-                <div className="admin-avatar-placeholder">A</div>
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.fullname} className="profile-avatar" />
+                ) : (
+                  <div className="profile-avatar profile-placeholder">
+                    {user.fullname.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="profile-info">
                   <strong>{user.fullname}</strong>
-                  <span className="admin-role-span">Administrator</span>
+                  <span>{user.role}</span>
                 </div>
                 <ChevronDown size={14} />
               </button>
 
               {showProfileMenu && (
                 <div className="profile-menu glass-panel">
-                  <div className="menu-item" onClick={() => handleAction("Admin Profile")}>
-                    <ShieldCheck size={14} />
+                  <div className="menu-item" onClick={() => handleQuickAction("My Profile")}>
+                    <User size={14} />
                     <span>My Profile</span>
                   </div>
-                  <div className="menu-item" onClick={() => handleAction("System Configuration")}>
+                  <div className="menu-item" onClick={() => handleQuickAction("Account Settings")}>
                     <Settings size={14} />
-                    <span>System Settings</span>
+                    <span>Settings</span>
                   </div>
                   <hr className="menu-divider" />
                   <div className="menu-item logout" onClick={handleLogout}>
@@ -299,11 +319,11 @@ export default function AdminDashboard() {
         <section className="stats-row">
           <div className="stat-card purple-theme">
             <div className="stat-icon-wrapper">
-              <Users size={20} />
+              <Layers size={20} />
             </div>
             <div className="stat-details">
-              <span>Total Users</span>
-              <strong>{totalUsers}</strong>
+              <span>Total Verifications</span>
+              <strong>{totalVerifications}</strong>
               <small>All time</small>
             </div>
           </div>
@@ -313,43 +333,43 @@ export default function AdminDashboard() {
               <CheckCircle2 size={20} />
             </div>
             <div className="stat-details">
-              <span>Verifications</span>
-              <strong>{totalVerifications}</strong>
+              <span>Completed</span>
+              <strong>{completedVerifications}</strong>
               <small>This month</small>
             </div>
           </div>
 
           <div className="stat-card orange-theme">
             <div className="stat-icon-wrapper">
-              <Package size={20} />
+              <Clock size={20} />
             </div>
             <div className="stat-details">
-              <span>Products Listed</span>
-              <strong>{activeProducts}</strong>
-              <small>Active</small>
+              <span>In Progress</span>
+              <strong>{inProgressVerifications}</strong>
+              <small>Pending</small>
             </div>
           </div>
 
           <div className="stat-card red-theme">
             <div className="stat-icon-wrapper">
-              <ShoppingCart size={20} />
+              <AlertTriangle size={20} />
             </div>
             <div className="stat-details">
-              <span>Platform Orders</span>
-              <strong>{pendingOrders}</strong>
-              <small>Pending</small>
+              <span>Rejected</span>
+              <strong>{rejectedVerifications}</strong>
+              <small>This month</small>
             </div>
           </div>
         </section>
 
         {/* =====================================================
-            MIDDLE ROW: CHART & PENDING REQUESTS
+            MIDDLE ROW: CHART & ACTIVITY
         ===================================================== */}
         <div className="dashboard-grid-two-cols">
           {/* Chart Card */}
           <section className="dashboard-panel chart-panel">
             <div className="panel-header">
-              <h2>User Signup & Volume</h2>
+              <h2>Verification Progress</h2>
               <div className="select-wrapper">
                 <select value={chartPeriod} onChange={(e) => setChartPeriod(e.target.value)}>
                   <option value="This Year">This Year</option>
@@ -375,11 +395,11 @@ export default function AdminDashboard() {
                 <line x1="50" y1="220" x2="650" y2="220" stroke="var(--dash-border)" />
 
                 {/* Y-axis Labels */}
-                <text x="30" y="45" fill="var(--dash-secondary)" fontSize="10">{maxCount}</text>
-                <text x="30" y="90" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.75)}</text>
-                <text x="30" y="135" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.5)}</text>
-                <text x="30" y="180" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.25)}</text>
-                <text x="30" y="224" fill="var(--dash-secondary)" fontSize="10">0</text>
+                <text x="35" y="45" fill="var(--dash-secondary)" fontSize="10">{maxCount}</text>
+                <text x="35" y="90" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.75)}</text>
+                <text x="35" y="135" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.5)}</text>
+                <text x="35" y="180" fill="var(--dash-secondary)" fontSize="10">{Math.round(maxCount * 0.25)}</text>
+                <text x="35" y="224" fill="var(--dash-secondary)" fontSize="10">0</text>
 
                 {/* Area Gradient Fill */}
                 {fillPath && <path d={fillPath} fill="url(#chartGlow)" />}
@@ -387,7 +407,7 @@ export default function AdminDashboard() {
                 {/* Line Path */}
                 {path && <path d={path} fill="none" stroke="#ff6b00" strokeWidth="3" strokeLinecap="round" />}
 
-                {/* Markers */}
+                {/* Markers & Interaction Points */}
                 {points.map((pt, idx) => (
                   <g key={idx} className="chart-marker-group">
                     <circle cx={pt.x} cy={pt.y} r="5" fill="#ffffff" stroke="#ff6b00" strokeWidth="2.5" />
@@ -398,131 +418,133 @@ export default function AdminDashboard() {
             </div>
           </section>
 
-          {/* Pending Verifications Queue */}
+          {/* Recent Activity Card */}
           <section className="dashboard-panel activity-panel">
             <div className="panel-header">
-              <h2>Pending Approvals</h2>
+              <h2>Recent Activity</h2>
             </div>
 
             {loading ? (
-              <div className="loading-state">Loading approvals queue...</div>
-            ) : filteredPending.length === 0 ? (
+              <div className="loading-state">Loading activities...</div>
+            ) : filteredTasks.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">✓</div>
-                <h3>All Clear!</h3>
-                <p>No pending verification requests require approval.</p>
+                <h3>No activity yet</h3>
+                <p>Start your first verification to see activity here.</p>
+                <button onClick={handleStartVerification} className="view-all-link">
+                  Start Verification
+                </button>
               </div>
             ) : (
               <div className="activity-list">
-                {filteredPending.slice(0, 4).map((req) => {
-                  const applicantName = userMap.get(req.user_id) || "Anonymous User";
+                {filteredTasks.slice(0, 4).map((t) => {
+                  const typeLabel = t.task_type.toUpperCase();
+                  const isCompleted = t.status === "completed" || t.status === "approved";
+                  const isRejected = t.status === "failed" || t.status === "rejected";
+                  
+                  let iconClass = "purple-bg";
+                  let statusClass = "pending";
+                  if (isCompleted) {
+                    iconClass = "green-bg";
+                    statusClass = "completed";
+                  } else if (isRejected) {
+                    iconClass = "red-bg";
+                    statusClass = "rejected";
+                  }
+
                   return (
-                    <div key={req.id} className="activity-item admin-queue-item">
-                      <div className="activity-icon orange-bg">
-                        <Clock size={16} />
+                    <div key={t.id} className="activity-item" onClick={() => handleQuickAction(`Details of: ${t.title}`)}>
+                      <div className={`activity-icon ${iconClass}`}>
+                        {isCompleted ? <CheckCircle2 size={16} /> : isRejected ? <AlertTriangle size={16} /> : <Clock size={16} />}
                       </div>
                       <div className="activity-details">
-                        <h4>{applicantName}</h4>
-                        <span className="req-type-span">{req.title} ({req.task_type.toUpperCase()})</span>
-                        <span className="status-pill pending">{req.status}</span>
+                        <h4>{t.title}</h4>
+                        <span className="req-type-span">{typeLabel}</span>
+                        <span className={`status-pill ${statusClass}`}>{t.status}</span>
                       </div>
-
-                      <div className="action-buttons-cell">
-                        <button
-                          onClick={() => handleApprove(req.id, applicantName)}
-                          className="circle-action-btn approve"
-                          title="Approve"
-                        >
-                          <Check size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleReject(req.id, applicantName)}
-                          className="circle-action-btn reject"
-                          title="Reject"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
+                      <span className="activity-time">
+                        {new Date(t.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
                   );
                 })}
               </div>
             )}
 
-            {filteredPending.length > 4 && (
-              <button onClick={() => handleAction("Verifications List Dashboard")} className="view-all-link">
-                View All Pending Requests
+            {filteredTasks.length > 4 && (
+              <button onClick={() => handleQuickAction("All activity history")} className="view-all-link">
+                View All
               </button>
             )}
           </section>
         </div>
 
         {/* =====================================================
-            BOTTOM ROW: SYSTEM CONTROLS & SECURITY NOTICE
+            BOTTOM ROW: QUICK ACTIONS & STATUS
         ===================================================== */}
         <div className="dashboard-grid-two-cols bottom-row">
-          {/* Quick Management Links */}
+          {/* Quick Actions Grid */}
           <section className="dashboard-panel quick-actions-panel">
             <div className="panel-header">
-              <h2>Management Modules</h2>
+              <h2>Quick Actions</h2>
             </div>
 
             <div className="actions-grid-2x2">
-              <button className="action-button-card" onClick={() => handleAction("User database profiles")}>
+              <button className="action-button-card" onClick={handleStartVerification}>
                 <div className="action-icon purple-bg">
-                  <Users size={18} />
-                </div>
-                <div className="action-text">
-                  <h3>User Management</h3>
-                  <p>Create, update or block accounts</p>
-                </div>
-              </button>
-
-              <button className="action-button-card" onClick={() => handleAction("Verification guidelines")}>
-                <div className="action-icon blue-bg">
                   <CheckCircle2 size={18} />
                 </div>
                 <div className="action-text">
-                  <h3>Trust System</h3>
-                  <p>Configure verifiers and rules</p>
+                  <h3>Start Verification</h3>
+                  <p>Verify a new document</p>
                 </div>
               </button>
 
-              <button className="action-button-card" onClick={() => handleAction("Products catalogs")}>
+              <button className="action-button-card" onClick={() => handleQuickAction("Document Upload Area")}>
+                <div className="action-icon blue-bg">
+                  <UploadCloud size={18} />
+                </div>
+                <div className="action-text">
+                  <h3>Upload Document</h3>
+                  <p>Upload supporting docs</p>
+                </div>
+              </button>
+
+              <button className="action-button-card" onClick={() => handleQuickAction("Business Registration verification")}>
                 <div className="action-icon orange-bg">
-                  <Package size={18} />
+                  <Briefcase size={18} />
                 </div>
                 <div className="action-text">
-                  <h3>Marketplace Control</h3>
-                  <p>Manage product listing claims</p>
+                  <h3>Verify Business</h3>
+                  <p>Verify your business</p>
                 </div>
               </button>
 
-              <button className="action-button-card" onClick={() => handleAction("System log auditor")}>
-                <div className="action-icon red-bg">
-                  <ShieldAlert size={18} />
+              <button className="action-button-card" onClick={() => handleQuickAction("Verifications database view")}>
+                <div className="action-icon green-bg">
+                  <Layers size={18} />
                 </div>
                 <div className="action-text">
-                  <h3>Security Auditor</h3>
-                  <p>View administrative actions log</p>
+                  <h3>View All</h3>
+                  <p>See all verifications</p>
                 </div>
               </button>
             </div>
           </section>
 
-          {/* Security Banner Card */}
-          <section className="dashboard-panel verification-status-card admin-security-banner">
+          {/* Verification Status Card */}
+          <section className="dashboard-panel verification-status-card">
             <div className="status-card-inner">
               <div className="status-badge-wrapper">
-                <span className="card-label">System Notice</span>
-                <span className="verification-badge-pill green">Active</span>
+                <span className="card-label">Your Verification Status</span>
+                <span className={`verification-badge-pill ${statusBadgeClass}`}>{statusBadge}</span>
               </div>
               
-              <h2>VeriNova Platform Operational</h2>
-              <p>Platform services are currently online. Database and caching services are working normally.</p>
+              <h2>{statusText}</h2>
+              <p>{statusDesc}</p>
               
               <div className="status-badge-shield">
-                <ShieldAlert size={72} />
+                <ShieldCheck size={72} />
               </div>
             </div>
           </section>
@@ -530,10 +552,10 @@ export default function AdminDashboard() {
       </main>
 
       {/* =====================================================
-          STYLES (Match UserDashboard UI precisely)
+          STYLES (Match Reference UI & Landing Page Colors)
       ===================================================== */}
       <style>{`
-        .admin-dashboard {
+        .user-dashboard {
           min-height: 100vh;
           display: flex;
           background: var(--dash-bg);
@@ -543,7 +565,7 @@ export default function AdminDashboard() {
         }
 
         /* Sidebar Styling */
-        .admin-sidebar {
+        .dashboard-sidebar {
           width: 260px;
           min-height: 100vh;
           background: var(--dash-sidebar);
@@ -561,14 +583,14 @@ export default function AdminDashboard() {
           z-index: 20;
         }
 
-        .admin-logo {
+        .dashboard-logo {
           display: flex;
           align-items: center;
           gap: 12px;
           padding: 0 10px 35px;
         }
 
-        .admin-logo-mark {
+        .logo-mark {
           width: 40px;
           height: 40px;
           display: flex;
@@ -582,7 +604,7 @@ export default function AdminDashboard() {
           box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
         }
 
-        .admin-logo h2 {
+        .dashboard-logo h2 {
           margin: 0;
           font-size: 19px;
           font-weight: 800;
@@ -590,20 +612,20 @@ export default function AdminDashboard() {
           letter-spacing: -0.5px;
         }
 
-        .admin-logo span {
+        .dashboard-logo span {
           font-size: 11px;
           color: var(--dash-secondary);
           font-weight: 600;
           letter-spacing: 0.5px;
         }
 
-        .admin-nav {
+        .dashboard-nav {
           display: flex;
           flex-direction: column;
           gap: 6px;
         }
 
-        .admin-nav-item {
+        .nav-item {
           border: none;
           background: transparent;
           color: var(--dash-secondary);
@@ -619,17 +641,17 @@ export default function AdminDashboard() {
           transition: all 0.2s ease;
         }
 
-        .admin-nav-item:hover {
+        .nav-item:hover {
           background: rgba(255, 107, 0, 0.04);
           color: var(--dash-primary);
         }
 
-        .admin-nav-item.active {
+        .nav-item.active {
           background: rgba(255, 107, 0, 0.08);
           color: var(--dash-primary);
         }
 
-        .admin-logout {
+        .logout-button {
           margin-top: auto;
           border: none;
           background: transparent;
@@ -645,13 +667,13 @@ export default function AdminDashboard() {
           transition: all 0.2s ease;
         }
 
-        .admin-logout:hover {
+        .logout-button:hover {
           background: rgba(239, 68, 68, 0.08);
           color: #ef4444;
         }
 
         /* Main Content Container */
-        .admin-main {
+        .dashboard-main {
           margin-left: 260px;
           width: calc(100% - 260px);
           padding: 35px 40px;
@@ -662,7 +684,7 @@ export default function AdminDashboard() {
         }
 
         /* Header block */
-        .admin-header {
+        .dashboard-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -677,7 +699,7 @@ export default function AdminDashboard() {
           color: var(--dash-text);
         }
 
-        .admin-subtitle {
+        .dashboard-subtitle {
           margin: 6px 0 0;
           color: var(--dash-secondary);
           font-size: 14px;
@@ -723,7 +745,6 @@ export default function AdminDashboard() {
         }
 
         /* Action Buttons */
-        .theme-toggle-btn,
         .header-action-btn {
           width: 40px;
           height: 40px;
@@ -738,7 +759,6 @@ export default function AdminDashboard() {
           transition: all 0.2s ease;
         }
 
-        .theme-toggle-btn:hover,
         .header-action-btn:hover {
           border-color: var(--dash-primary);
           color: var(--dash-primary);
@@ -850,17 +870,21 @@ export default function AdminDashboard() {
           border-color: var(--dash-primary);
         }
 
-        .admin-avatar-placeholder {
+        .profile-avatar {
           width: 32px;
           height: 32px;
           border-radius: 10px;
+          object-fit: cover;
+        }
+
+        .profile-placeholder {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           background: #ff6b00;
           color: white;
           font-weight: 800;
           font-size: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
         .profile-info {
@@ -876,10 +900,11 @@ export default function AdminDashboard() {
           line-height: 1.2;
         }
 
-        .admin-role-span {
+        .profile-info span {
           font-size: 10px;
-          color: var(--dash-primary);
-          font-weight: 700;
+          color: var(--dash-secondary);
+          font-weight: 600;
+          text-transform: capitalize;
           margin-top: 1px;
         }
 
@@ -979,7 +1004,7 @@ export default function AdminDashboard() {
           margin-top: 4px;
         }
 
-        /* Distinct Colors for Cards */
+        /* Distinct Colors for Cards matching the reference image */
         .purple-theme .stat-icon-wrapper {
           background: rgba(139, 92, 246, 0.1);
           color: #8b5cf6;
@@ -1072,7 +1097,7 @@ export default function AdminDashboard() {
           overflow: visible;
         }
 
-        /* Queue / Activity List Panel */
+        /* Activity List Panel */
         .activity-list {
           display: flex;
           flex-direction: column;
@@ -1083,15 +1108,14 @@ export default function AdminDashboard() {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 10px;
-          border-radius: 12px;
-          border: 1px solid var(--dash-border);
-          background: var(--dash-card);
-          transition: all 0.2s ease;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 10px;
+          transition: background 0.2s ease;
         }
 
         .activity-item:hover {
-          border-color: var(--dash-primary);
+          background: rgba(255, 107, 0, 0.03);
         }
 
         .activity-icon {
@@ -1103,11 +1127,11 @@ export default function AdminDashboard() {
           justify-content: center;
         }
 
+        .green-bg { background: rgba(16, 185, 129, 0.1); color: #10b981; }
         .orange-bg { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .red-bg { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         .purple-bg { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
         .blue-bg { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-        .green-bg { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 
         .activity-details {
           flex-grow: 1;
@@ -1132,60 +1156,20 @@ export default function AdminDashboard() {
 
         .status-pill {
           display: inline-block;
-          font-size: 9px;
+          font-size: 10px;
           font-weight: 700;
-          margin-top: 4px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          padding: 2px 6px;
-          border-radius: 10px;
-          width: fit-content;
+          margin-top: 3px;
+          text-transform: capitalize;
         }
 
-        .status-pill.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-        .status-pill.approved { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .status-pill.rejected { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .status-pill.completed { color: #10b981; }
+        .status-pill.pending { color: #f59e0b; }
+        .status-pill.rejected { color: #ef4444; }
 
-        /* Approval queue action buttons */
-        .action-buttons-cell {
-          display: flex;
-          gap: 6px;
-        }
-
-        .circle-action-btn {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .circle-action-btn.approve {
-          background: rgba(16, 185, 129, 0.1);
-          color: #10b981;
-        }
-        .circle-action-btn.approve:hover {
-          background: #10b981;
-          color: white;
-        }
-
-        .circle-action-btn.reject {
-          background: rgba(239, 68, 68, 0.1);
-          color: #ef4444;
-        }
-        .circle-action-btn.reject:hover {
-          background: #ef4444;
-          color: white;
-        }
-
-        .action-completed-label {
+        .activity-time {
           font-size: 11px;
-          font-weight: 700;
-          color: var(--dash-secondary);
+          color: var(--dash-muted);
+          font-weight: 600;
         }
 
         .view-all-link {
@@ -1287,7 +1271,6 @@ export default function AdminDashboard() {
         }
 
         .verification-badge-pill {
-          background: #10b981;
           color: white;
           font-size: 10px;
           font-weight: 700;
@@ -1297,8 +1280,14 @@ export default function AdminDashboard() {
           letter-spacing: 0.5px;
         }
 
-        .verification-badge-pill.green {
+        .verification-badge-pill.verified-pill {
           background: #10b981;
+        }
+        .verification-badge-pill.pending-pill {
+          background: #f59e0b;
+        }
+        .verification-badge-pill.unverified-pill {
+          background: #ef4444;
         }
 
         .status-card-inner h2 {
@@ -1333,37 +1322,6 @@ export default function AdminDashboard() {
           font-weight: 600;
         }
 
-        .empty-state {
-          text-align: center;
-          padding: 30px 10px;
-          color: var(--dash-secondary);
-        }
-
-        .empty-icon {
-          width: 44px;
-          height: 44px;
-          margin: 0 auto 12px;
-          border-radius: 50%;
-          background: rgba(255, 107, 0, 0.08);
-          color: var(--dash-primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          font-weight: 800;
-        }
-
-        .empty-state h3 {
-          margin: 0;
-          font-size: 15px;
-          font-weight: 700;
-        }
-
-        .empty-state p {
-          margin: 4px 0 0;
-          font-size: 12px;
-        }
-
         /* Responsive Design */
         @media (max-width: 1024px) {
           .stats-row {
@@ -1376,17 +1334,17 @@ export default function AdminDashboard() {
         }
 
         @media (max-width: 768px) {
-          .admin-sidebar {
+          .dashboard-sidebar {
             display: none;
           }
 
-          .admin-main {
+          .dashboard-main {
             margin-left: 0;
             width: 100%;
             padding: 20px;
           }
 
-          .admin-header {
+          .dashboard-header {
             flex-direction: column;
             align-items: flex-start;
           }

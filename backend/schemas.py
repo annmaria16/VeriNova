@@ -42,6 +42,14 @@ class TaskCreate(BaseModel):
     )
 
 
+class TaskStatusUpdate(BaseModel):
+    status: str = Field(
+        ...,
+        min_length=1,
+        max_length=30
+    )
+
+
 class TaskResponse(BaseModel):
     id: int
     user_id: int

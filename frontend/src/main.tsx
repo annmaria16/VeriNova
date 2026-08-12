@@ -1,12 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import { AuthProvider } from './hooks/useAuth.tsx'
-import { ToastProvider } from './hooks/useToast.tsx'
-import { ThemeProvider } from './hooks/useTheme.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-createRoot(document.getElementById('root')!).render(
+import "./index.css";
+import App from "./App.tsx";
+
+import { AuthProvider } from "./hooks/useAuth.tsx";
+import { ToastProvider } from "./hooks/useToast.tsx";
+import { ThemeProvider } from "./hooks/useTheme.tsx";
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ToastProvider>
       <ThemeProvider>
@@ -15,6 +17,5 @@ createRoot(document.getElementById('root')!).render(
         </AuthProvider>
       </ThemeProvider>
     </ToastProvider>
-  </StrictMode>,
-)
-
+  </StrictMode>
+);

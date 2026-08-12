@@ -6,7 +6,7 @@ import { useToast } from "../hooks/useToast";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
-  const { register, error: authError, clearError } = useAuth();
+  const { register, login, error: authError, clearError } = useAuth();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -88,9 +88,11 @@ export default function RegisterForm() {
 
     try {
       await register(formData.email, formData.password, formData.fullName);
-      toast("Account registered successfully! Please sign in.", "success");
-      // Automatically redirect to Login page after successful registration
-      navigate("/login");
+      toast("Account registered successfully! Logging you in...", "success");
+      // Automatically login the user
+      await login(formData.email, formData.password);
+      // Redirect to home/Welcome page
+      navigate("/", { replace: true });
     } catch (err: any) {
       const errMsg = err.message || "Registration failed. Please try again.";
       setSubmitError(errMsg);
