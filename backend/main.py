@@ -1,384 +1,1247 @@
-import logging
-import secrets
-import os
 import json
-import urllib.request
+import logging
+import os
+import secrets
+import urllib.error
 import urllib.parse
+import urllib.request
+
 from datetime import datetime, timedelta
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-from typing import Optional
+
 from dotenv import load_dotenv
 
-# Load environment configuration
-load_dotenv()
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    status,
+)
 
-from database import engine, get_db, Base
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+
+from sqlalchemy.orm import Session
+
+from database import Base, engine, get_db
+
+import auth
+import core_models
 import models
 import schemas
-import auth
 
-# Configure Logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-# OAuth environment variables
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+# ============================================================
+# LOAD ENVIRONMENT
+# ============================================================
 
-def make_http_request(url: str, method: str = "GET", headers: dict = None, data: dict = None):
-    headers = headers or {}
-    req_data = None
-    if data is not None:
-        if headers.get("Content-Type") == "application/json":
-            req_data = json.dumps(data).encode("utf-8")
-        else:
-            req_data = urllib.parse.urlencode(data).encode("utf-8")
-            if "Content-Type" not in headers:
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
-    
-    req = urllib.request.Request(url, data=req_data, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8")
-        logger.error(f"HTTPError to {url}: {e.code} - {error_body}")
-        try:
-            return json.loads(error_body)
-        except Exception:
-            raise Exception(f"Request failed: {e.code} - {error_body}")
+load_dotenv()
 
-app = FastAPI(title="VeriNova AI API", version="1.0.0")
+load_dotenv(
+    os.path.join(
+        os.path.dirname(__file__),
+        ".env"
+    )
+)
 
-# CORS Middleware
+
+# ============================================================
+# LOGGING
+# ============================================================
+
+logging.basicConfig(
+    level=logging.INFO
+)
+
+logger = logging.getLogger("verinova")
+
+
+# ============================================================
+# ENVIRONMENT VARIABLES
+# ============================================================
+
+GOOGLE_CLIENT_ID = os.getenv(
+    "GOOGLE_CLIENT_ID",
+    ""
+)
+
+GOOGLE_CLIENT_SECRET = os.getenv(
+    "GOOGLE_CLIENT_SECRET",
+    ""
+)
+
+GITHUB_CLIENT_ID = os.getenv(
+    "GITHUB_CLIENT_ID",
+    ""
+)
+
+GITHUB_CLIENT_SECRET = os.getenv(
+    "GITHUB_CLIENT_SECRET",
+    ""
+)
+
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:5173"
+)
+
+BACKEND_URL = os.getenv(
+    "BACKEND_URL",
+    "http://localhost:8000"
+)
+
+
+# ============================================================
+# FASTAPI APPLICATION
+# ============================================================
+
+app = FastAPI(
+    title="VeriNova AI API",
+    version="1.0.0"
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=[
+        FRONTEND_URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+# ============================================================
+# DATABASE STARTUP
+# ============================================================
+
 @app.on_event("startup")
 def startup_db():
-    logger.info("Initializing database tables...")
-    Base.metadata.create_all(bind=engine)
+
+    logger.info(
+        "Initializing database tables..."
+    )
+
+    Base.metadata.create_all(
+        bind=engine
+    )
+
+    logger.info(
+        "Database initialization completed."
+    )
 
 
-# POST /api/auth/register
-@app.post("/api/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
-def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(models.User).filter(models.User.email == user_in.email).first()
+# ============================================================
+# HTTP REQUEST HELPER
+# ============================================================
+
+def make_http_request(
+    url: str,
+    method: str = "GET",
+    headers: dict = None,
+    data: dict = None
+):
+
+    headers = headers or {}
+
+    req_data = None
+
+    if data is not None:
+
+        if headers.get(
+            "Content-Type"
+        ) == "application/json":
+
+            req_data = json.dumps(
+                data
+            ).encode("utf-8")
+
+        else:
+
+            req_data = urllib.parse.urlencode(
+                data
+            ).encode("utf-8")
+
+            if "Content-Type" not in headers:
+
+                headers[
+                    "Content-Type"
+                ] = "application/x-www-form-urlencoded"
+
+    request = urllib.request.Request(
+        url,
+        data=req_data,
+        headers=headers,
+        method=method
+    )
+
+    try:
+
+        with urllib.request.urlopen(
+            request
+        ) as response:
+
+            body = response.read().decode(
+                "utf-8"
+            )
+
+            return json.loads(body)
+
+    except urllib.error.HTTPError as exc:
+
+        error_body = exc.read().decode(
+            "utf-8"
+        )
+
+        logger.error(
+            "HTTP error %s: %s",
+            exc.code,
+            error_body
+        )
+
+        try:
+
+            return json.loads(
+                error_body
+            )
+
+        except Exception:
+
+            raise Exception(
+                f"Request failed: "
+                f"{exc.code} - "
+                f"{error_body}"
+            )
+
+
+# ============================================================
+# ROOT
+# ============================================================
+
+@app.get("/")
+def root():
+
+    return {
+        "name": "VeriNova",
+        "status": "online",
+        "version": "1.0.0"
+    }
+
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+@app.get("/health")
+def health():
+
+    return {
+        "status": "healthy"
+    }
+
+
+# ============================================================
+# REGISTER
+# ============================================================
+
+@app.post(
+    "/api/auth/register",
+    response_model=schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def register(
+    user_in: schemas.UserCreate,
+    db: Session = Depends(get_db)
+):
+
+    existing_user = (
+        db.query(models.User)
+        .filter(
+            models.User.email == user_in.email
+        )
+        .first()
+    )
+
     if existing_user:
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This email is already registered."
         )
-    
-    hashed_password = auth.get_password_hash(user_in.password)
+
+    hashed_password = auth.get_password_hash(
+        user_in.password
+    )
+
+    # --------------------------------------------------------
+    # ADMIN EMAIL GETS ADMIN ROLE
+    # --------------------------------------------------------
+
+    role = (
+        "admin"
+        if auth.is_admin_email(
+            user_in.email
+        )
+        else "user"
+    )
+
     db_user = models.User(
         fullname=user_in.fullname,
         email=user_in.email,
         password=hashed_password,
-        provider="email"
+        provider="email",
+        role=role
     )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    logger.info(
+        "Registered user %s with role %s",
+        db_user.email,
+        db_user.role
+    )
+
     return db_user
 
 
-# POST /api/auth/login
-@app.post("/api/auth/login", response_model=schemas.Token)
-def login(login_in: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == login_in.email).first()
+# ============================================================
+# NORMAL LOGIN
+# ============================================================
+
+@app.post(
+    "/api/auth/login",
+    response_model=schemas.Token
+)
+def login(
+    login_in: schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
+
+    db_user = (
+        db.query(models.User)
+        .filter(
+            models.User.email == login_in.email
+        )
+        .first()
+    )
+
     if not db_user:
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={
+                "WWW-Authenticate": "Bearer"
+            }
         )
-    
-    if db_user.password is None or not auth.verify_password(login_in.password, db_user.password):
+
+    if (
+        db_user.password is None
+        or not auth.verify_password(
+            login_in.password,
+            db_user.password
+        )
+    ):
+
         raise HTTPException(
-            status_code=status.HTTP_418_IM_A_TEAPOT if db_user.password is None else status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={
+                "WWW-Authenticate": "Bearer"
+            }
         )
-    
-    # Track user session
-    session_token = secrets.token_urlsafe(32)
-    session_expires = datetime.utcnow() + timedelta(days=7)
+
+    # --------------------------------------------------------
+    # CREATE SESSION
+    # --------------------------------------------------------
+
+    session_token = secrets.token_urlsafe(
+        32
+    )
+
+    session_expires = (
+        datetime.utcnow()
+        + timedelta(days=7)
+    )
+
     db_session = models.UserSession(
         user_id=db_user.id,
         session_token=session_token,
         expires_at=session_expires
     )
+
     db.add(db_session)
     db.commit()
 
-    access_token = auth.create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    # --------------------------------------------------------
+    # JWT CONTAINS USER ROLE
+    # --------------------------------------------------------
+
+    access_token = auth.create_user_access_token(
+        db_user
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
-# POST /api/auth/oauth
-@app.post("/api/auth/oauth", response_model=schemas.Token)
-def oauth_login(oauth_in: schemas.OAuthLoginRequest, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == oauth_in.email).first()
-    if not db_user:
-        db_user = models.User(
-            fullname=oauth_in.fullname,
-            email=oauth_in.email,
-            password=None,
-            provider=oauth_in.provider
+# ============================================================
+# ADMIN LOGIN
+# ============================================================
+
+@app.post(
+    "/api/auth/admin/login",
+    response_model=schemas.AdminToken
+)
+def admin_login(
+    login_in: schemas.AdminLogin,
+    db: Session = Depends(get_db)
+):
+
+    admin = (
+        db.query(models.User)
+        .filter(
+            models.User.email == login_in.email
         )
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-            
-    access_token = auth.create_access_token(data={"sub": db_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+        .first()
+    )
+
+    if not admin:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid admin credentials."
+        )
+
+    # --------------------------------------------------------
+    # DATABASE ROLE CHECK
+    # --------------------------------------------------------
+
+    if admin.role != "admin":
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is not an administrator."
+        )
+
+    if not admin.password:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="This administrator does not have a password login."
+        )
+
+    if not auth.verify_password(
+        login_in.password,
+        admin.password
+    ):
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid admin credentials."
+        )
+
+    access_token = auth.create_admin_access_token(
+        admin.email
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
-# GET /api/auth/google/login
-@app.get("/api/auth/google/login")
+# ============================================================
+# ADMIN PROFILE
+# ============================================================
+
+@app.get(
+    "/api/admin/me"
+)
+def admin_me(
+    current_admin: models.User = Depends(
+        auth.get_current_admin
+    )
+):
+
+    return {
+        "id": current_admin.id,
+        "fullname": current_admin.fullname,
+        "email": current_admin.email,
+        "role": current_admin.role,
+        "provider": current_admin.provider
+    }
+
+
+# ============================================================
+# USER PROFILE
+# ============================================================
+
+@app.get(
+    "/api/user/profile",
+    response_model=schemas.UserResponse
+)
+def get_profile(
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+
+    return current_user
+
+
+# ============================================================
+# GET CURRENT USER ROLE
+# ============================================================
+
+@app.get(
+    "/api/auth/me",
+    response_model=schemas.UserResponse
+)
+def get_current_user_profile(
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+
+    return current_user
+
+
+# ============================================================
+# GOOGLE LOGIN
+# ============================================================
+
+@app.get(
+    "/api/auth/google/login"
+)
 def google_login():
+
     if not GOOGLE_CLIENT_ID:
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Google Client ID is not configured in backend environment."
+            detail="Google Client ID is not configured."
         )
+
     params = {
         "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": f"{BACKEND_URL}/api/auth/google/callback",
+        "redirect_uri":
+            f"{BACKEND_URL}/api/auth/google/callback",
         "response_type": "code",
         "scope": "openid email profile",
         "access_type": "offline",
         "prompt": "consent"
     }
-    url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+
+    url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        + urllib.parse.urlencode(params)
+    )
+
     return RedirectResponse(url)
 
 
-# GET /api/auth/google/callback
-@app.get("/api/auth/google/callback")
-def google_callback(code: str, db: Session = Depends(get_db)):
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+# ============================================================
+# GOOGLE CALLBACK
+# ============================================================
+
+@app.get(
+    "/api/auth/google/callback"
+)
+def google_callback(
+    code: str,
+    db: Session = Depends(get_db)
+):
+
+    if (
+        not GOOGLE_CLIENT_ID
+        or not GOOGLE_CLIENT_SECRET
+    ):
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Google OAuth credentials not configured."
         )
-    # Exchange code for tokens
-    token_url = "https://oauth2.googleapis.com/token"
+
+    token_url = (
+        "https://oauth2.googleapis.com/token"
+    )
+
     data = {
         "code": code,
         "client_id": GOOGLE_CLIENT_ID,
         "client_secret": GOOGLE_CLIENT_SECRET,
-        "redirect_uri": f"{BACKEND_URL}/api/auth/google/callback",
+        "redirect_uri":
+            f"{BACKEND_URL}/api/auth/google/callback",
         "grant_type": "authorization_code"
     }
-    
-    try:
-        token_res = make_http_request(token_url, method="POST", data=data)
-        access_token = token_res.get("access_token")
-        if not access_token:
-            raise Exception(token_res.get("error_description") or "No access token returned from Google.")
-    except Exception as e:
-        logger.error(f"Google token exchange failed: {str(e)}")
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={urllib.parse.quote(str(e))}")
-        
-    # Get user profile
-    profile_url = f"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}"
-    try:
-        profile = make_http_request(profile_url)
-        email = profile.get("email")
-        fullname = profile.get("name", email.split('@')[0] if email else "Google User")
-        google_id = profile.get("sub")
-        picture = profile.get("picture")
-        if not email:
-            raise Exception("No email in Google profile.")
-    except Exception as e:
-        logger.error(f"Google user profile fetch failed: {str(e)}")
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={urllib.parse.quote(str(e))}")
 
-    # Check database
-    db_user = db.query(models.User).filter(models.User.email == email).first()
+    try:
+
+        token_res = make_http_request(
+            token_url,
+            method="POST",
+            data=data
+        )
+
+        google_access_token = token_res.get(
+            "access_token"
+        )
+
+        if not google_access_token:
+
+            raise Exception(
+                token_res.get(
+                    "error_description"
+                )
+                or "No access token returned from Google."
+            )
+
+    except Exception as exc:
+
+        logger.error(
+            "Google token exchange failed: %s",
+            exc
+        )
+
+        return RedirectResponse(
+            f"{FRONTEND_URL}/auth/callback"
+            f"?error={urllib.parse.quote(str(exc))}"
+        )
+
+    # --------------------------------------------------------
+    # GOOGLE PROFILE
+    # --------------------------------------------------------
+
+    profile_url = (
+        "https://www.googleapis.com/oauth2/v3/userinfo"
+        f"?access_token={google_access_token}"
+    )
+
+    try:
+
+        profile = make_http_request(
+            profile_url
+        )
+
+        email = profile.get(
+            "email"
+        )
+
+        if not email:
+
+            raise Exception(
+                "No email in Google profile."
+            )
+
+        fullname = profile.get(
+            "name"
+        ) or email.split("@")[0]
+
+        google_id = profile.get(
+            "sub"
+        )
+
+        picture = profile.get(
+            "picture"
+        )
+
+    except Exception as exc:
+
+        logger.error(
+            "Google profile fetch failed: %s",
+            exc
+        )
+
+        return RedirectResponse(
+            f"{FRONTEND_URL}/auth/callback"
+            f"?error={urllib.parse.quote(str(exc))}"
+        )
+
+    # --------------------------------------------------------
+    # FIND OR CREATE USER
+    # --------------------------------------------------------
+
+    db_user = (
+        db.query(models.User)
+        .filter(
+            models.User.email == email
+        )
+        .first()
+    )
+
     if not db_user:
-        # Create user automatically
+
+        role = (
+            "admin"
+            if auth.is_admin_email(email)
+            else "user"
+        )
+
         db_user = models.User(
             fullname=fullname,
             email=email,
             password=None,
-            provider="google"
+            provider="google",
+            role=role
         )
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        
-    # Save/update OAuth account info
-    oauth_acc = db.query(models.OAuthAccount).filter(
-        models.OAuthAccount.provider == "google",
-        models.OAuthAccount.provider_user_id == google_id
-    ).first()
+
+    else:
+
+        # If configured admin email logs in through Google,
+        # make sure the database role is admin.
+
+        if auth.is_admin_email(email):
+            db_user.role = "admin"
+
+        if not db_user.avatar_url and picture:
+            db_user.avatar_url = picture
+
+        db.commit()
+
+    # --------------------------------------------------------
+    # SAVE OAUTH ACCOUNT
+    # --------------------------------------------------------
+
+    oauth_acc = (
+        db.query(models.OAuthAccount)
+        .filter(
+            models.OAuthAccount.provider == "google",
+            models.OAuthAccount.provider_user_id
+            == google_id
+        )
+        .first()
+    )
+
     if not oauth_acc:
+
         oauth_acc = models.OAuthAccount(
             user_id=db_user.id,
             provider="google",
             provider_user_id=google_id,
             profile_image=picture
         )
+
         db.add(oauth_acc)
         db.commit()
-    elif oauth_acc.profile_image != picture:
-        oauth_acc.profile_image = picture
-        db.commit()
-        
-    # Create secure session
-    session_token = secrets.token_urlsafe(32)
-    session_expires = datetime.utcnow() + timedelta(days=7)
+
+    else:
+
+        if oauth_acc.profile_image != picture:
+
+            oauth_acc.profile_image = picture
+            db.commit()
+
+    # --------------------------------------------------------
+    # SESSION
+    # --------------------------------------------------------
+
+    session_token = secrets.token_urlsafe(
+        32
+    )
+
+    session_expires = (
+        datetime.utcnow()
+        + timedelta(days=7)
+    )
+
     db_session = models.UserSession(
         user_id=db_user.id,
         session_token=session_token,
         expires_at=session_expires
     )
+
     db.add(db_session)
     db.commit()
-    
-    # Generate JWT
-    jwt_token = auth.create_access_token(data={"sub": db_user.email})
-    return RedirectResponse(f"{FRONTEND_URL}/auth/callback?token={jwt_token}")
+
+    # --------------------------------------------------------
+    # JWT WITH ROLE
+    # --------------------------------------------------------
+
+    jwt_token = auth.create_user_access_token(
+        db_user
+    )
+
+    return RedirectResponse(
+        f"{FRONTEND_URL}/auth/callback"
+        f"?token={urllib.parse.quote(jwt_token)}"
+    )
 
 
-# GET /api/auth/github/login
-@app.get("/api/auth/github/login")
+# ============================================================
+# GITHUB LOGIN
+# ============================================================
+
+@app.get(
+    "/api/auth/github/login"
+)
 def github_login():
+
     if not GITHUB_CLIENT_ID:
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="GitHub Client ID is not configured in backend environment."
+            detail="GitHub Client ID is not configured."
         )
+
     params = {
         "client_id": GITHUB_CLIENT_ID,
-        "redirect_uri": f"{BACKEND_URL}/api/auth/github/callback",
+        "redirect_uri":
+            f"{BACKEND_URL}/api/auth/github/callback",
         "scope": "user:email"
     }
-    url = f"https://github.com/login/oauth/authorize?{urllib.parse.urlencode(params)}"
+
+    url = (
+        "https://github.com/login/oauth/authorize?"
+        + urllib.parse.urlencode(params)
+    )
+
     return RedirectResponse(url)
 
 
-# GET /api/auth/github/callback
-@app.get("/api/auth/github/callback")
-def github_callback(code: str, db: Session = Depends(get_db)):
-    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+# ============================================================
+# GITHUB CALLBACK
+# ============================================================
+
+@app.get(
+    "/api/auth/github/callback"
+)
+def github_callback(
+    code: str,
+    db: Session = Depends(get_db)
+):
+
+    if (
+        not GITHUB_CLIENT_ID
+        or not GITHUB_CLIENT_SECRET
+    ):
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="GitHub OAuth credentials not configured."
         )
-    # Exchange code for tokens
-    token_url = "https://github.com/login/oauth/access_token"
+
+    token_url = (
+        "https://github.com/login/oauth/access_token"
+    )
+
     data = {
         "code": code,
         "client_id": GITHUB_CLIENT_ID,
         "client_secret": GITHUB_CLIENT_SECRET,
-        "redirect_uri": f"{BACKEND_URL}/api/auth/github/callback"
+        "redirect_uri":
+            f"{BACKEND_URL}/api/auth/github/callback"
     }
+
     headers = {
         "Accept": "application/json"
     }
-    
-    try:
-        token_res = make_http_request(token_url, method="POST", headers=headers, data=data)
-        access_token = token_res.get("access_token")
-        if not access_token:
-            raise Exception(token_res.get("error_description") or "No access token returned from GitHub.")
-    except Exception as e:
-        logger.error(f"GitHub token exchange failed: {str(e)}")
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={urllib.parse.quote(str(e))}")
-        
-    # Get user profile
-    profile_url = "https://api.github.com/user"
-    profile_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "User-Agent": "VeriNova-App"
-    }
-    try:
-        profile = make_http_request(profile_url, headers=profile_headers)
-        github_id = str(profile.get("id"))
-        fullname = profile.get("name") or profile.get("login") or f"GitHub User {github_id}"
-        picture = profile.get("avatar_url")
-        email = profile.get("email")
-        
-        # If email is not public, fetch primary email
-        if not email:
-            emails_url = "https://api.github.com/user/emails"
-            emails = make_http_request(emails_url, headers=profile_headers)
-            primary_email = next((e.get("email") for e in emails if e.get("primary")), None)
-            email = primary_email or (emails[0].get("email") if emails else None)
-            
-        if not email:
-            raise Exception("No primary email found in GitHub account.")
-    except Exception as e:
-        logger.error(f"GitHub user profile fetch failed: {str(e)}")
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?error={urllib.parse.quote(str(e))}")
 
-    # Check database
-    db_user = db.query(models.User).filter(models.User.email == email).first()
+    try:
+
+        token_res = make_http_request(
+            token_url,
+            method="POST",
+            headers=headers,
+            data=data
+        )
+
+        github_access_token = token_res.get(
+            "access_token"
+        )
+
+        if not github_access_token:
+
+            raise Exception(
+                token_res.get(
+                    "error_description"
+                )
+                or "No access token returned from GitHub."
+            )
+
+    except Exception as exc:
+
+        logger.error(
+            "GitHub token exchange failed: %s",
+            exc
+        )
+
+        return RedirectResponse(
+            f"{FRONTEND_URL}/auth/callback"
+            f"?error={urllib.parse.quote(str(exc))}"
+        )
+
+    # --------------------------------------------------------
+    # GITHUB PROFILE
+    # --------------------------------------------------------
+
+    profile_url = (
+        "https://api.github.com/user"
+    )
+
+    profile_headers = {
+        "Authorization":
+            f"Bearer {github_access_token}",
+        "User-Agent":
+            "VeriNova-App"
+    }
+
+    try:
+
+        profile = make_http_request(
+            profile_url,
+            headers=profile_headers
+        )
+
+        github_id = str(
+            profile.get("id")
+        )
+
+        fullname = (
+            profile.get("name")
+            or profile.get("login")
+            or f"GitHub User {github_id}"
+        )
+
+        picture = profile.get(
+            "avatar_url"
+        )
+
+        email = profile.get(
+            "email"
+        )
+
+        # ----------------------------------------------------
+        # PRIVATE EMAIL
+        # ----------------------------------------------------
+
+        if not email:
+
+            emails_url = (
+                "https://api.github.com/user/emails"
+            )
+
+            emails = make_http_request(
+                emails_url,
+                headers=profile_headers
+            )
+
+            primary_email = next(
+                (
+                    item.get("email")
+                    for item in emails
+                    if item.get("primary")
+                ),
+                None
+            )
+
+            email = (
+                primary_email
+                or (
+                    emails[0].get("email")
+                    if emails
+                    else None
+                )
+            )
+
+        if not email:
+
+            raise Exception(
+                "No primary email found in GitHub account."
+            )
+
+    except Exception as exc:
+
+        logger.error(
+            "GitHub profile fetch failed: %s",
+            exc
+        )
+
+        return RedirectResponse(
+            f"{FRONTEND_URL}/auth/callback"
+            f"?error={urllib.parse.quote(str(exc))}"
+        )
+
+    # --------------------------------------------------------
+    # FIND OR CREATE USER
+    # --------------------------------------------------------
+
+    db_user = (
+        db.query(models.User)
+        .filter(
+            models.User.email == email
+        )
+        .first()
+    )
+
     if not db_user:
-        # Create user automatically
+
+        role = (
+            "admin"
+            if auth.is_admin_email(email)
+            else "user"
+        )
+
         db_user = models.User(
             fullname=fullname,
             email=email,
             password=None,
-            provider="github"
+            provider="github",
+            role=role
         )
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        
-    # Save/update OAuth account info
-    oauth_acc = db.query(models.OAuthAccount).filter(
-        models.OAuthAccount.provider == "github",
-        models.OAuthAccount.provider_user_id == github_id
-    ).first()
+
+    else:
+
+        if auth.is_admin_email(email):
+            db_user.role = "admin"
+
+        if not db_user.avatar_url and picture:
+            db_user.avatar_url = picture
+
+        db.commit()
+
+    # --------------------------------------------------------
+    # SAVE OAUTH ACCOUNT
+    # --------------------------------------------------------
+
+    oauth_acc = (
+        db.query(models.OAuthAccount)
+        .filter(
+            models.OAuthAccount.provider == "github",
+            models.OAuthAccount.provider_user_id
+            == github_id
+        )
+        .first()
+    )
+
     if not oauth_acc:
+
         oauth_acc = models.OAuthAccount(
             user_id=db_user.id,
             provider="github",
             provider_user_id=github_id,
             profile_image=picture
         )
+
         db.add(oauth_acc)
         db.commit()
-    elif oauth_acc.profile_image != picture:
-        oauth_acc.profile_image = picture
-        db.commit()
-        
-    # Create secure session
-    session_token = secrets.token_urlsafe(32)
-    session_expires = datetime.utcnow() + timedelta(days=7)
+
+    else:
+
+        if oauth_acc.profile_image != picture:
+
+            oauth_acc.profile_image = picture
+            db.commit()
+
+    # --------------------------------------------------------
+    # SESSION
+    # --------------------------------------------------------
+
+    session_token = secrets.token_urlsafe(
+        32
+    )
+
+    session_expires = (
+        datetime.utcnow()
+        + timedelta(days=7)
+    )
+
     db_session = models.UserSession(
         user_id=db_user.id,
         session_token=session_token,
         expires_at=session_expires
     )
+
     db.add(db_session)
     db.commit()
-    
-    # Generate JWT
-    jwt_token = auth.create_access_token(data={"sub": db_user.email})
-    return RedirectResponse(f"{FRONTEND_URL}/auth/callback?token={jwt_token}")
+
+    # --------------------------------------------------------
+    # JWT WITH ROLE
+    # --------------------------------------------------------
+
+    jwt_token = auth.create_user_access_token(
+        db_user
+    )
+
+    return RedirectResponse(
+        f"{FRONTEND_URL}/auth/callback"
+        f"?token={urllib.parse.quote(jwt_token)}"
+    )
 
 
-# GET /api/user/profile
-@app.get("/api/user/profile", response_model=schemas.UserResponse)
-def get_profile(current_user: models.User = Depends(auth.get_current_user)):
-    return current_user
+# ============================================================
+# CREATE TASK
+# ============================================================
+
+@app.post(
+    "/api/tasks",
+    response_model=schemas.TaskResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def create_task(
+    task_in: schemas.TaskCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+
+    task = core_models.Task(
+        user_id=current_user.id,
+        title=task_in.title,
+        description=task_in.description,
+        task_type=task_in.task_type,
+        status="pending",
+        confidence_score=None,
+        final_result=None,
+        reference_count=0
+    )
+
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+
+    return task
+
+
+# ============================================================
+# GET USER TASKS
+# ============================================================
+
+@app.get(
+    "/api/tasks",
+    response_model=list[schemas.TaskResponse]
+)
+def get_tasks(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+
+    tasks = (
+        db.query(core_models.Task)
+        .filter(
+            core_models.Task.user_id
+            == current_user.id
+        )
+        .order_by(
+            core_models.Task.created_at.desc()
+        )
+        .all()
+    )
+
+    return tasks
+
+
+# ============================================================
+# GET SINGLE TASK
+# ============================================================
+
+@app.get(
+    "/api/tasks/{task_id}",
+    response_model=schemas.TaskResponse
+)
+def get_task(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+
+    task = (
+        db.query(core_models.Task)
+        .filter(
+            core_models.Task.id == task_id,
+            core_models.Task.user_id
+            == current_user.id
+        )
+        .first()
+    )
+
+    if not task:
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found."
+        )
+
+    return task
+
+
+# ============================================================
+# ADMIN - GET ALL USERS
+# ============================================================
+
+@app.get(
+    "/api/admin/users"
+)
+def admin_get_users(
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(
+        auth.get_current_admin
+    )
+):
+
+    users = (
+        db.query(models.User)
+        .order_by(
+            models.User.created_at.desc()
+        )
+        .all()
+    )
+
+    return [
+        {
+            "id": user.id,
+            "fullname": user.fullname,
+            "email": user.email,
+            "provider": user.provider,
+            "role": user.role,
+            "created_at": user.created_at,
+            "avatar_url": user.avatar_url
+        }
+        for user in users
+    ]
+
+
+# ============================================================
+# ADMIN - GET ALL TASKS
+# ============================================================
+
+@app.get(
+    "/api/admin/tasks"
+)
+def admin_get_tasks(
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(
+        auth.get_current_admin
+    )
+):
+
+    tasks = (
+        db.query(core_models.Task)
+        .order_by(
+            core_models.Task.created_at.desc()
+        )
+        .all()
+    )
+
+    return tasks
