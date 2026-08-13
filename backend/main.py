@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import os
@@ -391,6 +392,101 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+# ============================================================
+# FORGOT PASSWORD
+# ============================================================
+
+@app.post("/api/auth/forgot-password")
+def forgot_password(
+    req: schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == req.email)
+        .first()
+    )
+
+    safe_message = "If an account exists for this email, a password reset link has been sent."
+
+    if user:
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+        expires_at = datetime.utcnow() + timedelta(minutes=30)
+
+        db_token = models.PasswordResetToken(
+            user_id=user.id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+            used=False
+        )
+        db.add(db_token)
+        db.commit()
+
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip('/')
+        reset_link = f"{frontend_url}/reset-password?token={raw_token}"
+
+        from utils.email import send_password_reset_email
+        send_password_reset_email(user.email, reset_link)
+
+    return {"message": safe_message}
+
+
+# ============================================================
+# RESET PASSWORD
+# ============================================================
+
+@app.post("/api/auth/reset-password")
+def reset_password(
+    req: schemas.ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    token_hash = hashlib.sha256(req.token.encode("utf-8")).hexdigest()
+
+    db_token = (
+        db.query(models.PasswordResetToken)
+        .filter(
+            models.PasswordResetToken.token_hash == token_hash,
+            models.PasswordResetToken.used == False
+        )
+        .first()
+    )
+
+    if not db_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token."
+        )
+
+    if db_token.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token."
+        )
+
+    user = (
+        db.query(models.User)
+        .filter(models.User.id == db_token.user_id)
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset token."
+        )
+
+    hashed_password = auth.get_password_hash(req.new_password)
+    user.password = hashed_password
+    db_token.used = True
+
+    # Invalidate active sessions
+    db.query(models.UserSession).filter(models.UserSession.user_id == user.id).delete()
+
+    db.commit()
+
+    return {"message": "Your password has been reset successfully."}
 
 
 # ============================================================

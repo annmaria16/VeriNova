@@ -125,6 +125,12 @@ export default function LoginForm() {
           <label htmlFor="password" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
             Password
           </label>
+          <Link
+            to="/forgot-password"
+            className="text-xs text-dash-primary hover:text-dash-hover font-bold transition-colors"
+          >
+            Forgot password?
+          </Link>
         </div>
         <div className="relative">
           <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-dash-secondary">

@@ -33,7 +33,9 @@ api.interceptors.response.use(
         "/login",
         "/register",
         "/signup",
-        "/auth/callback"
+        "/auth/callback",
+        "/forgot-password",
+        "/reset-password"
       ];
       if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = "/login?expired=true";

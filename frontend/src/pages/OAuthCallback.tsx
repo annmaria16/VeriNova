@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
@@ -13,8 +13,12 @@ export default function OAuthCallback() {
 
   const [error, setError] = useState<string | null>(null);
   const [statusText, setStatusText] = useState("Establishing secure handshake...");
+  const hasTriggeredRef = useRef(false);
 
   useEffect(() => {
+    if (hasTriggeredRef.current) return;
+    hasTriggeredRef.current = true;
+
     const handleCallback = async () => {
       const token = searchParams.get("token");
       const oauthError = searchParams.get("error");

@@ -1,6 +1,6 @@
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, LogOut, User, Mail, Calendar } from "lucide-react";
+import { ShieldCheck, LogOut, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 
@@ -73,45 +73,12 @@ export default function Welcome() {
             You are successfully signed in.
           </p>
 
-          {/* User Information */}
-          <div className="mt-8 flex flex-col gap-4 text-left border border-dash-border/60 bg-dash-card/50 rounded-2xl p-5 relative">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-dash-bg border border-dash-border flex items-center justify-center text-dash-secondary">
-                <User size={16} />
-              </div>
-              <div>
-                <p className="text-[10px] text-dash-secondary font-black uppercase tracking-wider">Full Name</p>
-                <p className="text-sm font-black text-dash-text mt-0.5">{user?.fullname || "N/A"}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 border-t border-dash-border/40 pt-4">
-              <div className="w-9 h-9 rounded-xl bg-dash-bg border border-dash-border flex items-center justify-center text-dash-secondary">
-                <Mail size={16} />
-              </div>
-              <div>
-                <p className="text-[10px] text-dash-secondary font-black uppercase tracking-wider">Email Address</p>
-                <p className="text-sm font-black text-dash-text mt-0.5 break-all">{user?.email || "N/A"}</p>
-              </div>
-            </div>
-
-            {user?.created_at && (
-              <div className="flex items-center gap-3 border-t border-dash-border/40 pt-4">
-                <div className="w-9 h-9 rounded-xl bg-dash-bg border border-dash-border flex items-center justify-center text-dash-secondary">
-                  <Calendar size={16} />
-                </div>
-                <div>
-                  <p className="text-[10px] text-dash-secondary font-black uppercase tracking-wider">Signed Up On</p>
-                  <p className="text-sm font-black text-dash-text mt-0.5">
-                    {new Date(user.created_at).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-            )}
+          {/* Redirecting loading indicator */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 bg-dash-card/30 border border-dash-border/40 rounded-2xl p-6">
+            <Loader2 className="w-6 h-6 text-dash-primary animate-spin" />
+            <p className="text-xs text-dash-secondary font-bold tracking-wide">
+              Redirecting to your dashboard...
+            </p>
           </div>
 
           {/* Sign Out Button */}
