@@ -1,33 +1,93 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, MessageSquare, Send, CheckCircle, AlertTriangle } from "lucide-react";
+import api from "../services/api";
+import { useToast } from "../hooks/useToast";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Contact() {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+
   const [formData, setFormData] = useState({
-    name: "",
+    fullname: "",
     email: "",
-    company: "",
+    subject: "",
     message: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Auto-scroll to contact section if redirect section matches
+  useEffect(() => {
+    if (searchParams.get("section") === "contact") {
+      const element = document.getElementById("contact");
+      if (element) {
+        const offset = 80;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = element.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }
+  }, [searchParams]);
+
+  // Restore saved message on mount
+  useEffect(() => {
+    const savedSubject = sessionStorage.getItem("saved_contact_subject");
+    const savedMessage = sessionStorage.getItem("saved_contact_message");
+    if (savedSubject || savedMessage) {
+      setFormData((prev) => ({
+        ...prev,
+        subject: savedSubject || "",
+        message: savedMessage || "",
+      }));
+    }
+  }, []);
+
+  // Pre-populate authenticated user profile information
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullname: user.fullname || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user, isAuthenticated]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.fullname.trim()) {
+      newErrors.fullname = "Full Name is required.";
+    } else if (formData.fullname.trim().length < 3) {
+      newErrors.fullname = "Full Name must be at least 3 characters.";
+    }
     
     if (!formData.email.trim()) {
       newErrors.email = "Email is required.";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address.";
     }
-    
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required.";
+    }
+
     if (!formData.message.trim()) {
-      newErrors.message = "Message cannot be empty.";
+      newErrors.message = "Message is required.";
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = "Message should be at least 10 characters.";
+      newErrors.message = "Message must be at least 10 characters.";
     }
 
     setErrors(newErrors);
@@ -39,23 +99,52 @@ export default function Contact() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear validation error when user types
+    setSubmitError(null);
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      // Save subject and message so they aren't lost
+      sessionStorage.setItem("saved_contact_subject", formData.subject);
+      sessionStorage.setItem("saved_contact_message", formData.message);
+      
+      toast("Please log in or create an account to contact VeriNova.", "error");
+      navigate("/login?redirect=contact");
+      return;
+    }
+
     if (!validate()) return;
 
     setIsSubmitting(true);
-    // Mock API Submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError(null);
+
+    try {
+      await api.post("/contact", {
+        subject: formData.subject,
+        message: formData.message,
+      });
       setIsSuccess(true);
-      setFormData({ name: "", email: "", company: "", message: "" });
-    }, 2000);
+      toast("Your message has been sent successfully.", "success");
+      setFormData({
+        fullname: user?.fullname || "",
+        email: user?.email || "",
+        subject: "",
+        message: "",
+      });
+      sessionStorage.removeItem("saved_contact_subject");
+      sessionStorage.removeItem("saved_contact_message");
+    } catch (err: any) {
+      const errMsg = err.response?.data?.detail || "Unable to send your message. Please try again.";
+      setSubmitError(errMsg);
+      toast(errMsg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,10 +166,10 @@ export default function Contact() {
               Start Verifying Today
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
-              Secure Your AI Deployments
+              Let's Talk
             </h2>
             <p className="text-dash-secondary mt-5 text-base leading-relaxed font-semibold">
-              Have questions about integrating VeriNova into your existing LangChain, Autogen, or custom AI agents? Get in touch to discuss compliance requirements, API keys, or enterprise VPC deployments.
+              Have questions about integrating VeriNova AI into your workflows, or want to learn how we can help you build trust in your AI-driven operations? Get in touch with our team.
             </p>
 
             <div className="mt-8 flex flex-col gap-5">
@@ -89,9 +178,9 @@ export default function Contact() {
                   <Mail size={18} />
                 </div>
                 <div>
-                  <p className="text-xs text-dash-secondary font-bold uppercase">Email support</p>
+                  <p className="text-xs text-dash-secondary font-bold uppercase">Email Support</p>
                   <p className="text-sm font-black hover:text-dash-primary transition-colors cursor-pointer">
-                    enterprise@verinova.ai
+                    adminverinova@gmail.com
                   </p>
                 </div>
               </div>
@@ -127,27 +216,37 @@ export default function Contact() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <h3 className="text-xl font-black text-dash-text mb-2">Request Integration Keys</h3>
+                    <h3 className="text-xl font-black text-dash-text mb-2">Send us a message</h3>
+
+                    {submitError && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-start gap-3">
+                        <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={16} />
+                        <span className="text-red-500 text-sm font-semibold">{submitError}</span>
+                      </div>
+                    )}
 
                     {/* Name field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="name" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
+                      <label htmlFor="fullname" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
                         Full Name
                       </label>
                       <input
                         type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
+                        id="fullname"
+                        name="fullname"
+                        value={formData.fullname}
                         onChange={handleInputChange}
+                        readOnly={isAuthenticated}
                         placeholder=""
-                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
-                          errors.name ? "border-red-500" : "border-dash-border"
+                        className={`w-full border rounded-xl px-4 py-3 text-sm placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
+                          isAuthenticated
+                            ? "bg-dash-sidebar/40 text-dash-secondary cursor-not-allowed border-dash-border/60"
+                            : "bg-dash-bg text-dash-text " + (errors.fullname ? "border-red-500" : "border-dash-border")
                         }`}
                       />
-                      {errors.name && (
+                      {errors.fullname && (
                         <span className="text-red-500 text-xs flex items-center gap-1.5 mt-1 font-semibold">
-                          <AlertTriangle size={12} /> {errors.name}
+                          <AlertTriangle size={12} /> {errors.fullname}
                         </span>
                       )}
                     </div>
@@ -155,7 +254,7 @@ export default function Contact() {
                     {/* Email field */}
                     <div className="flex flex-col gap-1.5">
                       <label htmlFor="email" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
-                        Work Email
+                        Email Address
                       </label>
                       <input
                         type="email"
@@ -163,9 +262,12 @@ export default function Contact() {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
+                        readOnly={isAuthenticated}
                         placeholder=""
-                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
-                          errors.email ? "border-red-500" : "border-dash-border"
+                        className={`w-full border rounded-xl px-4 py-3 text-sm placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
+                          isAuthenticated
+                            ? "bg-dash-sidebar/40 text-dash-secondary cursor-not-allowed border-dash-border/60"
+                            : "bg-dash-bg text-dash-text " + (errors.email ? "border-red-500" : "border-dash-border")
                         }`}
                       />
                       {errors.email && (
@@ -175,20 +277,27 @@ export default function Contact() {
                       )}
                     </div>
 
-                    {/* Company field */}
+                    {/* Subject field */}
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="company" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
-                        Company / Org (Optional)
+                      <label htmlFor="subject" className="text-xs font-black text-dash-secondary uppercase tracking-wider">
+                        Subject
                       </label>
                       <input
                         type="text"
-                        id="company"
-                        name="company"
-                        value={formData.company}
+                        id="subject"
+                        name="subject"
+                        value={formData.subject}
                         onChange={handleInputChange}
                         placeholder=""
-                        className="w-full bg-dash-bg border border-dash-border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold"
+                        className={`w-full bg-dash-bg border rounded-xl px-4 py-3 text-sm text-dash-text placeholder-dash-secondary/50 focus:outline-none focus:border-dash-primary focus:ring-1 focus:ring-dash-primary/30 transition-all font-semibold ${
+                          errors.subject ? "border-red-500" : "border-dash-border"
+                        }`}
                       />
+                      {errors.subject && (
+                        <span className="text-red-500 text-xs flex items-center gap-1.5 mt-1 font-semibold">
+                          <AlertTriangle size={12} /> {errors.subject}
+                        </span>
+                      )}
                     </div>
 
                     {/* Message field */}
@@ -221,10 +330,13 @@ export default function Contact() {
                       className="glow-btn bg-gradient-to-r from-[#FF6B00] to-[#FF8A1F] hover:opacity-95 text-white disabled:opacity-50 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-3.5 shadow-md shadow-orange-500/10 hover:shadow-lg transition-all cursor-pointer mt-2"
                     >
                       {isSubmitting ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Sending...</span>
+                        </>
                       ) : (
                         <>
-                          <span>Submit Request</span>
+                          <span>Send Message</span>
                           <Send size={16} />
                         </>
                       )}
@@ -242,9 +354,9 @@ export default function Contact() {
                     <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500 mb-6 shadow-[0_4px_12px_rgba(34,197,94,0.15)]">
                       <CheckCircle size={36} className="animate-bounce" />
                     </div>
-                    <h3 className="text-2xl font-black text-dash-text">Request Received</h3>
+                    <h3 className="text-2xl font-black text-dash-text">Message Sent</h3>
                     <p className="text-dash-secondary text-sm mt-3 max-w-sm leading-relaxed font-semibold">
-                      Thank you! Our engineering team will review your requirements and reach out within 2 hours with integration sandbox access instructions.
+                      Your message has been sent successfully.
                     </p>
                     <button
                       onClick={() => setIsSuccess(false)}

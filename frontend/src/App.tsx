@@ -6,6 +6,9 @@ import Register from "./pages/Register";
 import OAuthCallback from "./pages/OAuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import LegalConsent from "./pages/LegalConsent";
 
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -21,6 +24,8 @@ function App() {
         ===================================================== */}
 
         <Route path="/" element={<Home />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
 
         <Route
           path="/login"
@@ -73,6 +78,19 @@ function App() {
             <PublicRoute>
               <OAuthCallback />
             </PublicRoute>
+          }
+        />
+
+        {/* =====================================================
+            LEGAL CONSENT PROMPT
+        ===================================================== */}
+
+        <Route
+          path="/consent"
+          element={
+            <ProtectedRoute>
+              <LegalConsent />
+            </ProtectedRoute>
           }
         />
 

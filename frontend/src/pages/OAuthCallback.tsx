@@ -42,8 +42,14 @@ export default function OAuthCallback() {
         setStatusText("Initializing secure session...");
         await setSessionToken(token);
 
-        toast("Successfully authenticated!", "success");
-        navigate("/", { replace: true });
+        const newUser = searchParams.get("new_user");
+        if (newUser === "true") {
+          toast("Please review and accept our Legal Policies to continue.", "info");
+          navigate("/consent", { replace: true });
+        } else {
+          toast("Successfully authenticated!", "success");
+          navigate("/", { replace: true });
+        }
       } catch (err: any) {
         console.error(err);
         const errMsg = err.message || "Failed to complete authentication. Please try again.";

@@ -49,8 +49,7 @@ export default function Hero() {
 
           {/* Subheading */}
           <p className="mt-6 text-dash-secondary text-base sm:text-lg leading-relaxed max-w-xl font-bold">
-            VeriNova is an AI outcome verification platform designed to help
-            users validate automated decisions before trusting them.
+            VeriNova AI helps users verify AI-generated outcomes, claims, documents, and information using evidence-based analysis before making decisions they depend on.
           </p>
 
           {/* Action Buttons */}
@@ -63,11 +62,27 @@ export default function Hero() {
               <ArrowRight size={20} />
             </Link>
 
-            <button className="border-2 border-[#FF6B00] bg-white text-[#FF6B00] hover:bg-[#FFFCF9] px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm transition-all duration-300 group cursor-pointer font-bold">
+            <button
+              onClick={() => {
+                const element = document.querySelector("#how-it-works");
+                if (element) {
+                  const offset = 80;
+                  const bodyRect = document.body.getBoundingClientRect().top;
+                  const elementRect = element.getBoundingClientRect().top;
+                  const elementPosition = elementRect - bodyRect;
+                  const offsetPosition = elementPosition - offset;
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                  });
+                }
+              }}
+              className="border-2 border-[#FF6B00] bg-white text-[#FF6B00] hover:bg-[#FFFCF9] px-8 py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm transition-all duration-300 group cursor-pointer font-bold"
+            >
               <span className="p-1 rounded-full bg-[#FFF3E8] text-[#FF6B00] group-hover:bg-[#FF6B00] group-hover:text-white transition-all duration-300">
                 <Play size={14} fill="currentColor" />
               </span>
-              Watch Demo
+              See How It Works
             </button>
           </div>
         </motion.div>

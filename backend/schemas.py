@@ -83,6 +83,7 @@ class UserCreate(UserBase):
         min_length=6,
         max_length=128
     )
+    accepted_terms: bool
 
 
 class UserLogin(BaseModel):
@@ -112,6 +113,12 @@ class UserResponse(UserBase):
     created_at: datetime
 
     avatar_url: Optional[str] = None
+
+    terms_accepted: bool
+    privacy_accepted: bool
+    legal_accepted_at: Optional[datetime] = None
+    terms_version: Optional[str] = None
+    privacy_version: Optional[str] = None
 
     model_config = ConfigDict(
         from_attributes=True
@@ -192,4 +199,38 @@ class ResetPasswordRequest(BaseModel):
         ...,
         min_length=8,
         max_length=128
+    )
+
+
+# ============================================================
+# CONTACT MESSAGE SCHEMAS
+# ============================================================
+
+class ContactMessageCreate(BaseModel):
+    subject: str = Field(..., min_length=1, max_length=200)
+    message: str = Field(..., min_length=10, max_length=2000)
+
+
+class ContactMessageStatusUpdate(BaseModel):
+    status: str = Field(..., min_length=1, max_length=30)
+
+
+class ContactMessageReply(BaseModel):
+    admin_reply: str = Field(..., min_length=1, max_length=2000)
+
+
+class ContactMessageResponse(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    email: EmailStr
+    subject: str
+    message: str
+    status: str
+    admin_reply: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True
     )

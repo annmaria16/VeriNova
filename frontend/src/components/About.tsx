@@ -1,25 +1,7 @@
 import { motion } from "framer-motion";
-import { ShieldAlert, Award, Database, Sparkles, CheckCircle } from "lucide-react";
+import { Sparkles, CheckCircle } from "lucide-react";
 
 export default function About() {
-  const pillars = [
-    {
-      icon: ShieldAlert,
-      title: "Real-Time Prevention",
-      desc: "Catch hallucinations, faulty code commits, or API errors before they hit your end users.",
-    },
-    {
-      icon: Award,
-      title: "Trust & Compliance",
-      desc: "Produce tamper-proof cryptographic logs detailing exactly how each AI outcome was validated.",
-    },
-    {
-      icon: Database,
-      title: "Consensus Modeling",
-      desc: "Cross-reference results with deterministic databases, search index caches, and fallback validation layers.",
-    },
-  ];
-
   return (
     <section id="about" className="relative py-24 bg-dash-bg overflow-hidden">
       {/* Decorative Orbs */}
@@ -37,31 +19,21 @@ export default function About() {
             className="text-left"
           >
             <span className="text-dash-primary text-xs font-bold uppercase tracking-[0.2em]">
-              About VeriNova
+              About VeriNova AI
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
               Bridging the Trust Gap in AI Operations
             </h2>
-            <p className="text-dash-secondary mt-6 text-base leading-relaxed font-semibold">
-              Generative AI is transforming business, but hallucination rates and unverified actions expose businesses to critical risks. VeriNova sits between your LLMs and production databases to verify results, score confidence, and audit execution logs.
-            </p>
-
-            {/* Key Pillars */}
-            <div className="mt-10 flex flex-col gap-6">
-              {pillars.map((pillar) => {
-                const Icon = pillar.icon;
-                return (
-                  <div key={pillar.title} className="flex gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-dash-card border border-dash-border flex items-center justify-center text-dash-primary">
-                      <Icon size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-base font-black text-dash-text">{pillar.title}</h4>
-                      <p className="text-dash-secondary text-sm mt-1 leading-relaxed font-semibold">{pillar.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="text-dash-secondary mt-6 text-base leading-relaxed font-semibold flex flex-col gap-5">
+              <p>
+                VeriNova AI is designed to make AI-assisted decisions more trustworthy by adding a verification layer between generated outcomes and real-world decisions.
+              </p>
+              <p>
+                As AI becomes part of everyday workflows, users need more than fast answers. They need a way to review evidence, understand confidence, and identify information that deserves further attention.
+              </p>
+              <p>
+                VeriNova AI helps bridge that gap by providing a structured environment for submitting information, analyzing evidence, reviewing verification results, and maintaining a history of verification activity.
+              </p>
             </div>
           </motion.div>
 

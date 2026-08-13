@@ -92,6 +92,14 @@ BACKEND_URL = os.getenv(
 
 
 # ============================================================
+# LEGAL POLICY VERSION CONSTANTS
+# ============================================================
+
+CURRENT_TERMS_VERSION = "1.0"
+CURRENT_PRIVACY_VERSION = "1.0"
+
+
+# ============================================================
 # FASTAPI APPLICATION
 # ============================================================
 
@@ -259,6 +267,12 @@ def register(
     db: Session = Depends(get_db)
 ):
 
+    if not user_in.accepted_terms:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please accept the Terms & Conditions and Privacy Policy before creating an account."
+        )
+
     existing_user = (
         db.query(models.User)
         .filter(
@@ -295,7 +309,12 @@ def register(
         email=user_in.email,
         password=hashed_password,
         provider="email",
-        role=role
+        role=role,
+        terms_accepted=True,
+        privacy_accepted=True,
+        legal_accepted_at=datetime.utcnow(),
+        terms_version=CURRENT_TERMS_VERSION,
+        privacy_version=CURRENT_PRIVACY_VERSION
     )
 
     db.add(db_user)
@@ -630,6 +649,37 @@ def update_profile(
 
 
 # ============================================================
+# ACCEPT TERMS AND PRIVACY POLICY
+# ============================================================
+
+@app.post(
+    "/api/user/accept-legal",
+    response_model=schemas.UserResponse
+)
+def accept_legal_documents(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    current_user.terms_accepted = True
+    current_user.privacy_accepted = True
+    current_user.legal_accepted_at = datetime.utcnow()
+    current_user.terms_version = CURRENT_TERMS_VERSION
+    current_user.privacy_version = CURRENT_PRIVACY_VERSION
+
+    db.commit()
+    db.refresh(current_user)
+
+    logger.info(
+        "User %s accepted terms version %s and privacy version %s",
+        current_user.email,
+        CURRENT_TERMS_VERSION,
+        CURRENT_PRIVACY_VERSION
+    )
+
+    return current_user
+
+
+# ============================================================
 # CHANGE USER PASSWORD
 # ============================================================
 
@@ -842,8 +892,9 @@ def google_callback(
         .first()
     )
 
+    is_new_user = False
     if not db_user:
-
+        is_new_user = True
         role = (
             "admin"
             if auth.is_admin_email(email)
@@ -855,7 +906,9 @@ def google_callback(
             email=email,
             password=None,
             provider="google",
-            role=role
+            role=role,
+            terms_accepted=False,
+            privacy_accepted=False
         )
 
         db.add(db_user)
@@ -940,7 +993,7 @@ def google_callback(
 
     return RedirectResponse(
         f"{FRONTEND_URL}/auth/callback"
-        f"?token={urllib.parse.quote(jwt_token)}"
+        f"?token={urllib.parse.quote(jwt_token)}&new_user={str(is_new_user).lower()}"
     )
 
 
@@ -1150,8 +1203,9 @@ def github_callback(
         .first()
     )
 
+    is_new_user = False
     if not db_user:
-
+        is_new_user = True
         role = (
             "admin"
             if auth.is_admin_email(email)
@@ -1163,7 +1217,9 @@ def github_callback(
             email=email,
             password=None,
             provider="github",
-            role=role
+            role=role,
+            terms_accepted=False,
+            privacy_accepted=False
         )
 
         db.add(db_user)
@@ -1245,7 +1301,7 @@ def github_callback(
 
     return RedirectResponse(
         f"{FRONTEND_URL}/auth/callback"
-        f"?token={urllib.parse.quote(jwt_token)}"
+        f"?token={urllib.parse.quote(jwt_token)}&new_user={str(is_new_user).lower()}"
     )
 
 
@@ -1445,3 +1501,228 @@ def admin_update_task_status(
     db.refresh(task)
 
     return task
+
+
+# ============================================================
+# PROTECTED CONTACT MESSAGE SUBMISSION
+# ============================================================
+
+@app.post("/api/contact")
+def create_contact_message(
+    msg_in: schemas.ContactMessageCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    try:
+        db_msg = models.ContactMessage(
+            user_id=current_user.id,
+            name=current_user.fullname,
+            email=current_user.email,
+            subject=msg_in.subject,
+            message=msg_in.message,
+            status="new"
+        )
+        db.add(db_msg)
+        db.commit()
+        db.refresh(db_msg)
+        
+        # Deliver email to admin
+        try:
+            admin_email = os.getenv("ADMIN_EMAIL", "adminverinova@gmail.com")
+            email_address = os.getenv("EMAIL_ADDRESS")
+            email_password = os.getenv("EMAIL_PASSWORD")
+            if email_address and email_password:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+                
+                msg = MIMEMultipart()
+                msg['Subject'] = f"VeriNova Contact Message: {msg_in.subject}"
+                msg['From'] = f"VeriNova Support <{email_address}>"
+                msg['To'] = admin_email
+                
+                body = (
+                    f"VeriNova Contact Message\n\n"
+                    f"User:\n{current_user.fullname}\n\n"
+                    f"Email:\n{current_user.email}\n\n"
+                    f"Subject:\n{msg_in.subject}\n\n"
+                    f"Message:\n{msg_in.message}\n\n"
+                    f"User ID:\n{current_user.id}\n\n"
+                    f"Submitted:\n{db_msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if db_msg.created_at else 'Just now'}\n"
+                )
+                msg.attach(MIMEText(body, 'plain'))
+                
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login(email_address, email_password)
+                server.sendmail(email_address, admin_email, msg.as_string())
+                server.quit()
+                logger.info(f"Admin contact notification email sent to {admin_email}")
+        except Exception as email_err:
+            logger.error(f"Failed to send admin email notification: {str(email_err)}")
+
+        return {"message": "Your message has been sent successfully."}
+    except Exception as e:
+        logger.error(f"Failed to submit contact message: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to send your message. Please try again."
+        )
+
+
+# ============================================================
+# USER - GET OWN CONTACT MESSAGES
+# ============================================================
+
+@app.get("/api/contact/messages", response_model=list[schemas.ContactMessageResponse])
+def get_user_contact_messages(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    messages = (
+        db.query(models.ContactMessage)
+        .filter(models.ContactMessage.user_id == current_user.id)
+        .order_by(models.ContactMessage.created_at.desc())
+        .all()
+    )
+    return messages
+
+
+# ============================================================
+# ADMIN - GET CONTACT MESSAGES
+# ============================================================
+
+@app.get("/api/admin/contact-messages", response_model=list[schemas.ContactMessageResponse])
+def admin_get_contact_messages(
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    messages = (
+        db.query(models.ContactMessage)
+        .order_by(models.ContactMessage.created_at.desc())
+        .all()
+    )
+    return messages
+
+
+# ============================================================
+# ADMIN - UPDATE CONTACT MESSAGE STATUS
+# ============================================================
+
+@app.put("/api/admin/contact-messages/{message_id}/status", response_model=schemas.ContactMessageResponse)
+def admin_update_contact_message_status(
+    message_id: int,
+    status_in: schemas.ContactMessageStatusUpdate,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    msg = (
+        db.query(models.ContactMessage)
+        .filter(models.ContactMessage.id == message_id)
+        .first()
+    )
+    if not msg:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contact message not found."
+        )
+
+    valid_statuses = ["new", "read", "replied", "closed"]
+    if status_in.status not in valid_statuses:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid status. Must be one of {valid_statuses}"
+        )
+
+    msg.status = status_in.status
+    db.commit()
+    db.refresh(msg)
+    return msg
+
+
+# ============================================================
+# ADMIN - REPLY TO CONTACT MESSAGE
+# ============================================================
+
+@app.post("/api/admin/contact-messages/{message_id}/reply", response_model=schemas.ContactMessageResponse)
+def admin_reply_contact_message(
+    message_id: int,
+    reply_in: schemas.ContactMessageReply,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    msg = (
+        db.query(models.ContactMessage)
+        .filter(models.ContactMessage.id == message_id)
+        .first()
+    )
+    if not msg:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contact message not found."
+        )
+
+    msg.admin_reply = reply_in.admin_reply
+    msg.status = "replied"
+    db.commit()
+    db.refresh(msg)
+
+    # Deliver reply email to user
+    try:
+        email_address = os.getenv("EMAIL_ADDRESS")
+        email_password = os.getenv("EMAIL_PASSWORD")
+        if email_address and email_password:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            mail = MIMEMultipart()
+            mail['Subject'] = f"Re: {msg.subject}"
+            mail['From'] = f"VeriNova Support <{email_address}>"
+            mail['To'] = msg.email
+            
+            body = (
+                f"Hello {msg.name},\n\n"
+                f"You have received a reply from the VeriNova AI team regarding your message:\n\n"
+                f"Original Subject: {msg.subject}\n\n"
+                f"Reply:\n{reply_in.admin_reply}\n\n"
+                f"Best regards,\nVeriNova AI Support Team\n"
+            )
+            mail.attach(MIMEText(body, 'plain'))
+            
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(email_address, email_password)
+            server.sendmail(email_address, msg.email, mail.as_string())
+            server.quit()
+            logger.info(f"Support reply email sent to {msg.email}")
+    except Exception as email_err:
+        logger.error(f"Failed to send support reply email: {str(email_err)}")
+
+    return msg
+
+
+# ============================================================
+# ADMIN - DELETE CONTACT MESSAGE
+# ============================================================
+
+@app.delete("/api/admin/contact-messages/{message_id}")
+def admin_delete_contact_message(
+    message_id: int,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    msg = (
+        db.query(models.ContactMessage)
+        .filter(models.ContactMessage.id == message_id)
+        .first()
+    )
+    if not msg:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Contact message not found."
+        )
+
+    db.delete(msg)
+    db.commit()
+    return {"message": "Contact message deleted successfully."}

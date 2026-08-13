@@ -10,6 +10,11 @@ interface UserProfile {
   role: "user" | "admin";
   created_at: string;
   avatar_url?: string | null;
+  terms_accepted: boolean;
+  privacy_accepted: boolean;
+  terms_version?: string | null;
+  privacy_version?: string | null;
+  legal_accepted_at?: string | null;
 }
 
 interface AuthContextType {
@@ -26,7 +31,8 @@ interface AuthContextType {
   register: (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    acceptedTerms?: boolean
   ) => Promise<void>;
 
   oauthLogin: (
@@ -209,7 +215,8 @@ export function AuthProvider({
   const register = async (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    acceptedTerms?: boolean
   ) => {
     setError(null);
 
@@ -220,6 +227,7 @@ export function AuthProvider({
           email,
           password,
           fullname: fullName,
+          accepted_terms: acceptedTerms,
         }
       );
 

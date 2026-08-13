@@ -54,8 +54,8 @@ export default function Footer() {
   const resourceLinks = [
     { name: "Documentation", href: "#" },
     { name: "GitHub", href: "https://github.com" },
-    { name: "Privacy Policy", href: "#" },
-    { name: "Terms & Conditions", href: "#" },
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms & Conditions", href: "/terms" },
     { name: "Cookie Policy", href: "#" },
   ];
 
@@ -92,7 +92,7 @@ export default function Footer() {
             </div>
           </Link>
           <p className="text-dash-secondary text-sm leading-relaxed max-w-sm font-semibold">
-            Providing real-time auditability, evidence collections, and confidence scoring models to ensure safety and alignment in autonomous systems.
+            VeriNova AI helps users verify AI-generated outcomes, claims, documents, and information using evidence-based analysis before making decisions they depend on.
           </p>
           {/* Social Icons */}
           <div className="flex gap-4 mt-2">
@@ -192,19 +192,37 @@ export default function Footer() {
         <div className="flex flex-col gap-4 text-left">
           <h4 className="text-dash-text font-black text-sm tracking-wider uppercase">Resources</h4>
           <ul className="flex flex-col gap-2 text-sm text-dash-secondary font-semibold">
-            {resourceLinks.map((link) => (
-              <li key={link.name}>
-                <a
-                  href={link.href}
-                  target={link.href && link.href.startsWith("http") ? "_blank" : undefined}
-                  rel={link.href && link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  onClick={(e) => link.href && handleLinkClick(e, link.href)}
-                  className="hover:text-dash-primary transition-colors duration-200"
-                >
-                  {link.name}
-                </a>
-              </li>
-            ))}
+            {resourceLinks.map((link) => {
+              const isExternal = link.href.startsWith("http");
+              const isInternalRoute = link.href.startsWith("/");
+
+              if (isInternalRoute) {
+                return (
+                  <li key={link.name}>
+                    <Link
+                      to={link.href}
+                      className="hover:text-dash-primary transition-colors duration-200"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                );
+              }
+
+              return (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    onClick={(e) => handleLinkClick(e, link.href)}
+                    className="hover:text-dash-primary transition-colors duration-200"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
 

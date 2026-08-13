@@ -34,6 +34,7 @@ export default function UserDashboard() {
   const { toast } = useToast();
 
   const [tasks, setTasks] = useState<any[]>([]);
+  const [userMessages, setUserMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [chartPeriod, setChartPeriod] = useState("This Year");
@@ -62,8 +63,18 @@ export default function UserDashboard() {
     }
   };
 
+  const fetchMessages = async () => {
+    try {
+      const response = await api.get("/contact/messages");
+      setUserMessages(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user support messages", error);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
+    fetchMessages();
   }, []);
 
   useEffect(() => {
@@ -277,9 +288,9 @@ export default function UserDashboard() {
             <span>Settings</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("Help Center")}>
+          <button className={`nav-item ${activeSection === "messages" ? "active" : ""}`} onClick={() => openSection("messages")}>
             <HelpCircle size={18} />
-            <span>Help & Support</span>
+            <span>Contact Support</span>
           </button>
         </nav>
 
@@ -439,6 +450,101 @@ export default function UserDashboard() {
                 </div>
               ))}
             </div>
+          </section>
+        )}
+
+        {activeSection === "messages" && (
+          <section className="dashboard-panel" style={{ padding: 24 }}>
+            <div className="panel-header">
+              <h2>My Support Messages</h2>
+              <button 
+                className="view-all-link"
+                onClick={() => {
+                  navigate("/");
+                  setTimeout(() => {
+                    const element = document.querySelector("#contact");
+                    if (element) {
+                      const offset = 80;
+                      const bodyRect = document.body.getBoundingClientRect().top;
+                      const elementRect = element.getBoundingClientRect().top;
+                      const elementPosition = elementRect - bodyRect;
+                      const offsetPosition = elementPosition - offset;
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                      });
+                    }
+                  }, 300);
+                }}
+              >
+                Send New Message
+              </button>
+            </div>
+            
+            {userMessages.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">✉</div>
+                <h3>No messages yet</h3>
+                <p>Have a question or need assistance? Send us a message using the landing page contact form.</p>
+              </div>
+            ) : (
+              <div className="user-messages-list" style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
+                {userMessages.map((msg) => (
+                  <div 
+                    key={msg.id} 
+                    className="user-message-card"
+                    style={{
+                      border: "1px solid var(--dash-border)",
+                      borderRadius: 12,
+                      padding: 16,
+                      background: "var(--dash-card)",
+                      textAlign: "left",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span className={`status-pill ${msg.status}`} style={{ fontSize: 10, textTransform: "uppercase" }}>{msg.status}</span>
+                      <span style={{ fontSize: 11, color: "var(--dash-secondary)", fontWeight: 600 }}>
+                        {new Date(msg.created_at).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric"
+                        })}
+                      </span>
+                    </div>
+                    
+                    <h4 style={{ fontSize: 14, fontWeight: 800, margin: 0, color: "var(--dash-text)" }}>
+                      {msg.subject}
+                    </h4>
+                    
+                    <p style={{ fontSize: 13, color: "var(--dash-secondary)", margin: 0, lineHeight: 1.5, fontWeight: 500 }}>
+                      {msg.message}
+                    </p>
+                    
+                    {msg.admin_reply && (
+                      <div 
+                        style={{
+                          marginTop: 12,
+                          padding: 12,
+                          background: "var(--dash-bg)",
+                          borderLeft: "3px solid #ff6b00",
+                          borderRadius: "4px 8px 8px 4px"
+                        }}
+                      >
+                        <strong style={{ fontSize: 11, textTransform: "uppercase", color: "#ff6b00", display: "block", marginBottom: 4 }}>
+                          Admin Reply:
+                        </strong>
+                        <p style={{ fontSize: 12.5, color: "var(--dash-text)", margin: 0, lineHeight: 1.5, fontWeight: 600 }}>
+                          {msg.admin_reply}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -713,6 +819,28 @@ export default function UserDashboard() {
                 <label>New password<input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></label>
                 <button className="modal-primary full-width" disabled={savingPassword || !currentPassword || !newPassword} onClick={handleChangePassword}>{savingPassword ? "Updating..." : "Change Password"}</button>
               </>)}
+              <div className="settings-divider" />
+              <h3>Legal Agreements</h3>
+              <div className="settings-row" style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start", width: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "13px" }}>
+                  <span>Terms & Conditions:</span>
+                  <strong style={{ color: "var(--dash-primary)" }}>{user.terms_accepted ? `Accepted (v${user.terms_version || "1.0"})` : "Not Accepted"}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "13px" }}>
+                  <span>Privacy Policy:</span>
+                  <strong style={{ color: "var(--dash-primary)" }}>{user.privacy_accepted ? `Accepted (v${user.privacy_version || "1.0"})` : "Not Accepted"}</strong>
+                </div>
+                {user.legal_accepted_at && (
+                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: "13px" }}>
+                    <span>Consent Date:</span>
+                    <strong>{new Date(user.legal_accepted_at).toLocaleString()}</strong>
+                  </div>
+                )}
+                <div style={{ marginTop: "8px", display: "flex", gap: "16px", width: "100%" }}>
+                  <a href="/terms" target="_blank" rel="noreferrer" style={{ color: "var(--dash-primary)", fontWeight: "bold", fontSize: "12px", textDecoration: "underline" }}>Read Terms</a>
+                  <a href="/privacy-policy" target="_blank" rel="noreferrer" style={{ color: "var(--dash-primary)", fontWeight: "bold", fontSize: "12px", textDecoration: "underline" }}>Read Privacy Policy</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

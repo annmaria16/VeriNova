@@ -5,33 +5,33 @@ export default function Features() {
   const features = [
     {
       icon: ShieldCheck,
-      title: "Outcome Verification",
-      description: "Independently validates AI-generated results through execution testing and consensus models.",
+      title: "AI Outcome Verification",
+      description: "Analyze AI-generated answers, claims, and outcomes against available evidence before relying on them.",
+    },
+    {
+      icon: FileText,
+      title: "Evidence Analysis",
+      description: "Review supporting evidence and identify information that may require additional verification.",
     },
     {
       icon: BarChart3,
       title: "Confidence Scoring",
-      description: "Calculates strict certainty quotients using semantic search, heuristics, and execution path matching.",
-    },
-    {
-      icon: Link2,
-      title: "API Evidence",
-      description: "Integrates directly with upstream tools to pull receipts, JSON responses, and HTTP response metadata.",
-    },
-    {
-      icon: FileText,
-      title: "Execution Logs",
-      description: "Compiles complete, tamper-proof audit trails detailing exact prompt structures, parameters, and tokens.",
+      description: "Understand how strongly the available evidence supports a verification result.",
     },
     {
       icon: Activity,
-      title: "AI Monitoring",
-      description: "Tracks real-time system performance, drift metrics, confidence drop alerts, and model fallback states.",
+      title: "Verification History",
+      description: "Keep a record of previous verification requests, results, and activity in one place.",
+    },
+    {
+      icon: Link2,
+      title: "Transparent Results",
+      description: "Present verification outcomes in a clear format so users can understand what was verified and why.",
     },
     {
       icon: Lock,
-      title: "Enterprise Security",
-      description: "Protects sensitive data layers with zero-trust architectures, end-to-end data encryption, and HIPAA compliance.",
+      title: "Trusted Decision Support",
+      description: "Use verification insights as an additional layer of review before making important decisions.",
     },
   ];
 
@@ -49,10 +49,10 @@ export default function Features() {
             Core Features
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-dash-text mt-3 leading-tight">
-            Why Choose VeriNova
+            Verification Built for Better Decisions
           </h2>
           <p className="text-dash-secondary mt-4 text-base leading-relaxed font-semibold">
-            Ensure reliability and compliance in automated workflows. We provide a rigorous evidence-backed safety layer for mission-critical AI operations.
+            Turn uncertain information into clear, reviewable verification results.
           </p>
         </div>
 

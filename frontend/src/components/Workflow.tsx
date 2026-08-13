@@ -7,29 +7,29 @@ export default function Workflow() {
 
   const steps = [
     {
-      title: "1. AI Executes",
-      desc: "System runs automated task",
+      title: "Submit",
+      desc: "Submit the AI outcome, claim, document, or information you want to verify.",
       icon: Cpu,
     },
     {
-      title: "2. Intercept Outcome",
-      desc: "VeriNova intercepts response",
+      title: "Analyze",
+      desc: "VeriNova AI analyzes the submitted information and evaluates the available evidence.",
       icon: Search,
     },
     {
-      title: "3. Evidence Audit",
-      desc: "Verify logs & DB events",
+      title: "Verify",
+      desc: "The platform compares the information against relevant evidence and produces a verification result.",
       icon: Scale,
     },
     {
-      title: "4. Confidence Score",
-      desc: "Calculate certainty rating",
+      title: "Review",
+      desc: "Review the result, confidence information, and supporting evidence before making a decision.",
       icon: ShieldCheck,
       isCore: true,
     },
     {
-      title: "5. Safe Commit",
-      desc: "Decision finalized or blocked",
+      title: "Track",
+      desc: "Keep verification activity organized through your dashboard and verification history.",
       icon: CheckCircle2,
     },
   ];
@@ -58,7 +58,7 @@ export default function Workflow() {
             How VeriNova AI Works
           </h2>
           <p className="text-dash-secondary mt-4 text-base leading-relaxed font-semibold">
-            A pipeline designed to intercept, investigate, and validate outputs before committing decisions. Click steps to inspect.
+            Verify information in a simple, structured workflow.
           </p>
         </div>
 

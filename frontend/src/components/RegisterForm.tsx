@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, User, AlertTriangle, Check } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, login, error: authError, clearError } = useAuth();
   const { toast } = useToast();
   
@@ -14,6 +15,7 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    acceptedTerms: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -65,7 +67,7 @@ export default function RegisterForm() {
     ? "Passwords do not match."
     : "";
 
-  const isFormValid = isFullNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid;
+  const isFormValid = isFullNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && formData.acceptedTerms;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -87,12 +89,31 @@ export default function RegisterForm() {
     clearError();
 
     try {
-      await register(formData.email, formData.password, formData.fullName);
+      await register(formData.email, formData.password, formData.fullName, formData.acceptedTerms);
       toast("Account registered successfully! Logging you in...", "success");
       // Automatically login the user
       await login(formData.email, formData.password);
-      // Redirect to home/Welcome page
-      navigate("/", { replace: true });
+      
+      const redirect = searchParams.get("redirect");
+      if (redirect === "contact") {
+        navigate("/", { replace: true });
+        setTimeout(() => {
+          const element = document.querySelector("#contact");
+          if (element) {
+            const offset = 80;
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+          }
+        }, 300);
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err: any) {
       const errMsg = err.message || "Registration failed. Please try again.";
       setSubmitError(errMsg);
@@ -245,7 +266,37 @@ export default function RegisterForm() {
         )}
       </div>
 
-
+      {/* Legal Consent Checkbox */}
+      <div className="flex items-start gap-3 mt-1.5">
+        <input
+          type="checkbox"
+          id="acceptedTerms"
+          name="acceptedTerms"
+          checked={formData.acceptedTerms}
+          onChange={handleInputChange}
+          className="mt-1 w-4 h-4 rounded text-dash-primary focus:ring-dash-primary border-dash-border bg-dash-bg accent-[#FF6B00] cursor-pointer"
+        />
+        <label htmlFor="acceptedTerms" className="text-xs font-semibold text-dash-text leading-relaxed select-none cursor-pointer">
+          I agree to the{" "}
+          <Link
+            to="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-dash-primary hover:text-dash-hover font-bold transition-colors"
+          >
+            Terms & Conditions
+          </Link>{" "}
+          and{" "}
+          <Link
+            to="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-dash-primary hover:text-dash-hover font-bold transition-colors"
+          >
+            Privacy Policy
+          </Link>.
+        </label>
+      </div>
 
       {/* Submit Button */}
       <button
@@ -263,7 +314,10 @@ export default function RegisterForm() {
       {/* Transition link */}
       <p className="text-center text-sm text-dash-secondary mt-2 font-semibold">
         Already have an account?{" "}
-        <Link to="/login" className="text-dash-primary hover:text-dash-hover font-bold transition-colors">
+        <Link
+          to={searchParams.get("redirect") ? `/login?redirect=${searchParams.get("redirect")}` : "/login"}
+          className="text-dash-primary hover:text-dash-hover font-bold transition-colors"
+        >
           Login
         </Link>
       </p>

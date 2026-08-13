@@ -70,8 +70,27 @@ export default function LoginForm() {
     try {
       await login(formData.email, formData.password);
       toast("Successfully signed in!", "success");
-      // Success! Navigate to home
-      navigate("/", { replace: true });
+      
+      const redirect = searchParams.get("redirect");
+      if (redirect === "contact") {
+        navigate("/", { replace: true });
+        setTimeout(() => {
+          const element = document.querySelector("#contact");
+          if (element) {
+            const offset = 80;
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+          }
+        }, 300);
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err: any) {
       const errMsg = err.message || "Failed to sign in. Please try again.";
       setSubmitError(errMsg);
@@ -176,7 +195,10 @@ export default function LoginForm() {
       {/* Transition link */}
       <p className="text-center text-sm text-dash-secondary mt-2 font-semibold">
         Don't have an account?{" "}
-        <Link to="/register" className="text-dash-primary hover:text-dash-hover font-bold transition-colors">
+        <Link
+          to={searchParams.get("redirect") ? `/register?redirect=${searchParams.get("redirect")}` : "/register"}
+          className="text-dash-primary hover:text-dash-hover font-bold transition-colors"
+        >
           Register
         </Link>
       </p>

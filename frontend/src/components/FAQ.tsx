@@ -10,24 +10,28 @@ interface FAQItem {
 export default function FAQ() {
   const faqs: FAQItem[] = [
     {
-      question: "What is AI outcome verification?",
-      answer: "AI outcome verification is the process of independently validating that the output of an AI agent or LLM task is correct, safe, and true before it is committed to production. VeriNova intercepts AI outcomes, collects execution footprints (like API response logs and DB records), and runs deterministic validations.",
+      question: "What is VeriNova AI?",
+      answer: "VeriNova AI is an AI-powered outcome verification platform designed to help users review AI-generated outcomes, claims, documents, and information before relying on them.",
     },
     {
-      question: "How does VeriNova prevent AI hallucinations?",
-      answer: "VeriNova collects real evidence from your API responses and database layers. Instead of trusting the LLM text output directly, we confirm that downstream executions actually occurred as expected. If the AI claims to have updated a record but no DB query or API request exists, VeriNova flags it as a hallucination.",
+      question: "What can I verify?",
+      answer: "You can use VeriNova AI to review supported AI-generated outcomes, claims, information, documents, and other verification requests supported by the platform.",
     },
     {
-      question: "Does this add significant latency to my AI calls?",
-      answer: "No. The verification engine is written in highly optimized Rust/WebAssembly binaries and runs concurrently with your workflows. The average verification latency is less than 45 milliseconds, making it suitable for real-time customer-facing interactions.",
+      question: "Does VeriNova AI guarantee that information is correct?",
+      answer: "No. VeriNova AI is designed to provide evidence-based verification insights and confidence information. Users should consider the available evidence and use appropriate human judgment for important decisions.",
     },
     {
-      question: "Can VeriNova be integrated with custom or private LLMs?",
-      answer: "Yes. VeriNova is model-agnostic. We support standard APIs (OpenAI, Anthropic, Google Gemini) as well as open-source frameworks (Llama, Mistral) and custom on-premise models running in your private clouds.",
+      question: "Can I see my previous verification requests?",
+      answer: "Yes. Authenticated users can access their verification history through the user dashboard.",
     },
     {
-      question: "Is my corporate data secure with VeriNova?",
-      answer: "Completely. We offer a zero-data-retention policy on payloads and cryptographically sign execution logs. VeriNova is fully SOC2 Type II, HIPAA, and GDPR compliant. We also offer private VPC deployments for enterprise tier customers.",
+      question: "Is my verification activity stored?",
+      answer: "Verification activity associated with your account can be stored so you can review previous requests and results.",
+    },
+    {
+      question: "How can I contact VeriNova AI?",
+      answer: "You can contact the VeriNova AI team through the Contact section on this website.",
     },
   ];
 

@@ -78,6 +78,35 @@ class User(Base):
         nullable=True
     )
 
+    terms_accepted = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false"
+    )
+
+    privacy_accepted = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false"
+    )
+
+    legal_accepted_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    terms_version = Column(
+        String(10),
+        nullable=True
+    )
+
+    privacy_version = Column(
+        String(10),
+        nullable=True
+    )
+
     # --------------------------------------------------------
     # Relationships
     # --------------------------------------------------------
@@ -263,6 +292,80 @@ class PasswordResetToken(Base):
         DateTime,
         nullable=False,
         server_default=func.now()
+    )
+
+    # Relationship
+    user = relationship(
+        "User"
+    )
+
+
+# ============================================================
+# CONTACT MESSAGE
+# ============================================================
+
+class ContactMessage(Base):
+    __tablename__ = "contact_messages"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False
+    )
+
+    name = Column(
+        String(100),
+        nullable=False
+    )
+
+    email = Column(
+        String(255),
+        nullable=False
+    )
+
+    subject = Column(
+        String(200),
+        nullable=False
+    )
+
+    message = Column(
+        String(2000),
+        nullable=False
+    )
+
+    # new, read, replied, closed
+    status = Column(
+        String(30),
+        nullable=False,
+        default="new",
+        server_default="new"
+    )
+
+    admin_reply = Column(
+        String(2000),
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now()
     )
 
     # Relationship
