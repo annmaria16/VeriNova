@@ -498,6 +498,74 @@ def get_profile(
     return current_user
 
 
+    # ============================================================
+# UPDATE USER PROFILE
+# ============================================================
+
+@app.put(
+    "/api/user/profile",
+    response_model=schemas.UserResponse
+)
+def update_profile(
+    profile_in: schemas.UserProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(
+        auth.get_current_user
+    )
+):
+    if profile_in.fullname is not None:
+        fullname = profile_in.fullname.strip()
+
+        if len(fullname) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Full name must contain at least 3 characters."
+            )
+
+        current_user.fullname = fullname
+
+    if profile_in.avatar_url is not None:
+        current_user.avatar_url = profile_in.avatar_url
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user
+
+
+# ============================================================
+# CHANGE USER PASSWORD
+# ============================================================
+
+@app.put("/api/user/password")
+def change_user_password(
+    password_in: schemas.PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if current_user.provider != "email":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password changes are only available for email accounts."
+        )
+
+    if not current_user.password or not auth.verify_password(
+        password_in.current_password,
+        current_user.password
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect."
+        )
+
+    current_user.password = auth.get_password_hash(
+        password_in.new_password
+    )
+    db.commit()
+
+    return {"message": "Password changed successfully."}
+
+
 # ============================================================
 # GET CURRENT USER ROLE
 # ============================================================
@@ -1109,8 +1177,7 @@ def create_task(
         task_type=task_in.task_type,
         status="pending",
         confidence_score=None,
-        final_result=None,
-        reference_count=0
+        final_result=None
     )
 
     db.add(task)

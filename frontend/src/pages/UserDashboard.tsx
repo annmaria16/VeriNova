@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 export default function UserDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -39,6 +39,16 @@ export default function UserDashboard() {
   const [chartPeriod, setChartPeriod] = useState("This Year");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [profileName, setProfileName] = useState(user?.fullname ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url ?? "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   // Fetch tasks/verifications from backend API
   const fetchTasks = async () => {
@@ -56,6 +66,11 @@ export default function UserDashboard() {
     fetchTasks();
   }, []);
 
+  useEffect(() => {
+    setProfileName(user?.fullname ?? "");
+    setAvatarUrl(user?.avatar_url ?? "");
+  }, [user?.fullname, user?.avatar_url]);
+
   if (!user) {
     return null;
   }
@@ -68,6 +83,63 @@ export default function UserDashboard() {
 
   const handleQuickAction = (actionName: string) => {
     toast(`Launched: ${actionName}`, "success");
+  };
+
+  const openSection = (section: string) => {
+    setActiveSection(section);
+    setShowProfileMenu(false);
+  };
+
+  const handleSaveProfile = async () => {
+    const fullname = profileName.trim();
+    if (fullname.length < 3) {
+      toast("Full name must contain at least 3 characters.", "error");
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const response = await api.put("/user/profile", {
+        fullname,
+        avatar_url: avatarUrl.trim() || null,
+      });
+
+      // Keep AuthContext and the dashboard header in sync.
+      updateUser(response.data);
+      toast("Profile updated successfully.", "success");
+      setShowProfileModal(false);
+    } catch (error: any) {
+      toast(error.response?.data?.detail || "Failed to update profile.", "error");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) {
+      toast("New password must contain at least 8 characters.", "error");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      await api.put("/user/password", {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      toast("Password changed successfully.", "success");
+    } catch (error: any) {
+      toast(error.response?.data?.detail || "Failed to change password.", "error");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleTaskCreated = async () => {
+    await fetchTasks();
+    setActiveSection("verifications");
   };
 
   // Create real task/verification
@@ -83,8 +155,8 @@ export default function UserDashboard() {
         description,
         task_type: type
       });
+      await handleTaskCreated();
       toast("Verification request submitted successfully!", "success");
-      fetchTasks();
     } catch (err) {
       toast("Failed to submit verification request", "error");
     }
@@ -165,40 +237,42 @@ export default function UserDashboard() {
       ===================================================== */}
       <aside className="dashboard-sidebar">
         <div className="dashboard-logo">
-          <span className="logo-mark">V</span>
+          <div className="logo-mark">
+            <ShieldCheck size={22} className="logo-icon" />
+          </div>
           <div>
-            <h2>VeriNova</h2>
+            <h2>VeriNova AI</h2>
             <span>User Portal</span>
           </div>
         </div>
 
         <nav className="dashboard-nav">
-          <button className="nav-item active">
+          <button className={`nav-item ${activeSection === "overview" ? "active" : ""}`} onClick={() => openSection("overview")}>
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("Verifications List")}>
+          <button className={`nav-item ${activeSection === "verifications" ? "active" : ""}`} onClick={() => openSection("verifications")}>
             <CheckCircle2 size={18} />
             <span>Verifications</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("My Documents")}>
+          <button className={`nav-item ${activeSection === "documents" ? "active" : ""}`} onClick={() => openSection("documents")}>
             <FileText size={18} />
             <span>My Documents</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("Activity logs")}>
+          <button className={`nav-item ${activeSection === "activity" ? "active" : ""}`} onClick={() => openSection("activity")}>
             <Activity size={18} />
             <span>Activity</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("Profile details")}>
+          <button className={`nav-item ${activeSection === "profile" ? "active" : ""}`} onClick={() => { openSection("profile"); setShowProfileModal(true); }}>
             <User size={18} />
             <span>Profile</span>
           </button>
 
-          <button className="nav-item" onClick={() => handleQuickAction("Settings panel")}>
+          <button className={`nav-item ${activeSection === "settings" ? "active" : ""}`} onClick={() => { openSection("settings"); setShowSettingsModal(true); }}>
             <Settings size={18} />
             <span>Settings</span>
           </button>
@@ -293,11 +367,11 @@ export default function UserDashboard() {
 
               {showProfileMenu && (
                 <div className="profile-menu glass-panel">
-                  <div className="menu-item" onClick={() => handleQuickAction("My Profile")}>
+                  <div className="menu-item" onClick={() => { openSection("profile"); setShowProfileModal(true); }}>
                     <User size={14} />
                     <span>My Profile</span>
                   </div>
-                  <div className="menu-item" onClick={() => handleQuickAction("Account Settings")}>
+                  <div className="menu-item" onClick={() => { openSection("settings"); setShowSettingsModal(true); }}>
                     <Settings size={14} />
                     <span>Settings</span>
                   </div>
@@ -312,7 +386,64 @@ export default function UserDashboard() {
           </div>
         </header>
 
-        {/* =====================================================
+        {activeSection === "verifications" && (
+          <section className="dashboard-panel" style={{ padding: 24 }}>
+            <div className="panel-header">
+              <h2>All Verifications</h2>
+              <button className="view-all-link" onClick={handleStartVerification}>Start Verification</button>
+            </div>
+            {loading ? (
+              <div className="loading-state">Loading verifications...</div>
+            ) : filteredTasks.length === 0 ? (
+              <div className="empty-state"><div className="empty-icon">✓</div><h3>No verifications found</h3><p>Create a verification request to get started.</p></div>
+            ) : (
+              <div className="activity-list">
+                {filteredTasks.map((task) => (
+                  <button key={task.id} type="button" className="activity-item" style={{ width: "100%", border: 0, background: "transparent", textAlign: "left" }} onClick={() => setSelectedTask(task)}>
+                    <div className={`activity-icon ${task.status === "approved" || task.status === "completed" ? "green-bg" : task.status === "rejected" || task.status === "failed" ? "red-bg" : "purple-bg"}`}>
+                      {task.status === "approved" || task.status === "completed" ? <CheckCircle2 size={16} /> : task.status === "rejected" || task.status === "failed" ? <AlertTriangle size={16} /> : <Clock size={16} />}
+                    </div>
+                    <div className="activity-details">
+                      <h4>{task.title}</h4>
+                      <span className="req-type-span">{task.task_type}</span>
+                      <span className={`status-pill ${task.status === "approved" || task.status === "completed" ? "completed" : task.status === "rejected" || task.status === "failed" ? "rejected" : "pending"}`}>{task.status}</span>
+                    </div>
+                    <span className="activity-time">{new Date(task.created_at).toLocaleDateString()}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeSection === "documents" && (
+          <section className="dashboard-panel" style={{ padding: 24 }}>
+            <div className="panel-header"><h2>My Documents</h2></div>
+            <div className="empty-state">
+              <div className="empty-icon"><UploadCloud size={20} /></div>
+              <h3>Document storage is ready for the next backend module</h3>
+              <p>Your current backend has task/verification storage, but no document upload endpoint yet. No fake upload is performed.</p>
+            </div>
+          </section>
+        )}
+
+        {activeSection === "activity" && (
+          <section className="dashboard-panel" style={{ padding: 24 }}>
+            <div className="panel-header"><h2>Activity History</h2></div>
+            <div className="activity-list">
+              {filteredTasks.length === 0 ? <div className="empty-state"><h3>No activity yet</h3><p>Your verification activity will appear here.</p></div> : filteredTasks.map((task) => (
+                <div key={task.id} className="activity-item">
+                  <div className="activity-icon purple-bg"><Activity size={16} /></div>
+                  <div className="activity-details"><h4>{task.title}</h4><span>{task.task_type} · {task.status}</span></div>
+                  <span className="activity-time">{new Date(task.updated_at || task.created_at).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {activeSection === "overview" && (
+        <>        {/* =====================================================
             STATS ROW
         ===================================================== */}
         <section className="stats-row">
@@ -548,7 +679,59 @@ export default function UserDashboard() {
             </div>
           </section>
         </div>
+        </>
+        )}
       </main>
+
+      {/* PROFILE MODAL */}
+      {showProfileModal && (
+        <div className="user-modal-overlay" onClick={() => setShowProfileModal(false)}>
+          <div className="user-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="user-modal-header"><h2>My Profile</h2><button className="close-btn" onClick={() => setShowProfileModal(false)}><X size={16} /></button></div>
+            <div className="user-modal-body">
+              <label>Full name<input value={profileName} onChange={(e) => setProfileName(e.target.value)} /></label>
+              <label>Avatar URL<input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." /></label>
+              <label>Email<input value={user.email} disabled /></label>
+              <label>Provider<input value={user.provider} disabled /></label>
+            </div>
+            <div className="user-modal-footer"><button className="modal-secondary" onClick={() => setShowProfileModal(false)}>Cancel</button><button className="modal-primary" disabled={savingProfile} onClick={handleSaveProfile}>{savingProfile ? "Saving..." : "Save Changes"}</button></div>
+          </div>
+        </div>
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettingsModal && (
+        <div className="user-modal-overlay" onClick={() => setShowSettingsModal(false)}>
+          <div className="user-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="user-modal-header"><h2>Account Settings</h2><button className="close-btn" onClick={() => setShowSettingsModal(false)}><X size={16} /></button></div>
+            <div className="user-modal-body">
+              <div className="settings-row"><div><strong>Appearance</strong><span>Switch between light and dark mode.</span></div><button className="modal-secondary" onClick={toggleTheme}>{theme === "light" ? "Dark mode" : "Light mode"}</button></div>
+              {user.provider === "email" && (<>
+                <div className="settings-divider" />
+                <h3>Change Password</h3>
+                <label>Current password<input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} /></label>
+                <label>New password<input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></label>
+                <button className="modal-primary full-width" disabled={savingPassword || !currentPassword || !newPassword} onClick={handleChangePassword}>{savingPassword ? "Updating..." : "Change Password"}</button>
+              </>)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TASK DETAIL MODAL */}
+      {selectedTask && (
+        <div className="user-modal-overlay" onClick={() => setSelectedTask(null)}>
+          <div className="user-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="user-modal-header"><h2>Verification Details</h2><button className="close-btn" onClick={() => setSelectedTask(null)}><X size={16} /></button></div>
+            <div className="user-modal-body">
+              <h3>{selectedTask.title}</h3>
+              <p>{selectedTask.description || "No description provided."}</p>
+              <div className="detail-grid"><span>Status</span><strong>{selectedTask.status}</strong><span>Type</span><strong>{selectedTask.task_type}</strong><span>Created</span><strong>{new Date(selectedTask.created_at).toLocaleString()}</strong><span>Updated</span><strong>{new Date(selectedTask.updated_at || selectedTask.created_at).toLocaleString()}</strong>{selectedTask.confidence_score != null && <><span>Confidence</span><strong>{selectedTask.confidence_score}%</strong></>}</div>
+              {selectedTask.final_result && <div className="result-box"><strong>Result</strong><p>{selectedTask.final_result}</p></div>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =====================================================
           STYLES (Match Reference UI & Landing Page Colors)
@@ -596,11 +779,13 @@ export default function UserDashboard() {
           align-items: center;
           justify-content: center;
           border-radius: 12px;
-          background: #ff6b00;
+          background: linear-gradient(135deg, #FF6B00 0%, #FF8A1F 100%);
           color: white;
-          font-size: 22px;
-          font-weight: 900;
           box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+        }
+
+        .logo-icon {
+          color: white;
         }
 
         .dashboard-logo h2 {

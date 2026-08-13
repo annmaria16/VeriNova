@@ -154,9 +154,11 @@ export default function AdminDashboard() {
       ===================================================== */}
       <aside className="admin-sidebar">
         <div className="admin-logo">
-          <span className="admin-logo-mark">V</span>
+          <div className="admin-logo-mark">
+            <ShieldCheck size={22} className="admin-logo-icon" />
+          </div>
           <div>
-            <h2>VeriNova</h2>
+            <h2>VeriNova AI</h2>
             <span>Admin Center</span>
           </div>
         </div>
@@ -572,11 +574,13 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           border-radius: 12px;
-          background: #ff6b00;
+          background: linear-gradient(135deg, #FF6B00 0%, #FF8A1F 100%);
           color: white;
-          font-size: 22px;
-          font-weight: 900;
           box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+        }
+
+        .admin-logo-icon {
+          color: white;
         }
 
         .admin-logo h2 {

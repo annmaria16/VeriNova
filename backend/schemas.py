@@ -59,7 +59,7 @@ class TaskResponse(BaseModel):
     status: str
     confidence_score: Optional[float] = None
     final_result: Optional[str] = None
-    reference_count: int
+    reference_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -116,6 +116,41 @@ class UserResponse(UserBase):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+    # ============================================================
+# USER DASHBOARD SCHEMAS
+# ============================================================
+
+class UserProfileUpdate(BaseModel):
+    fullname: Optional[str] = Field(
+        default=None,
+        min_length=3,
+        max_length=100
+    )
+    avatar_url: Optional[str] = Field(
+        default=None,
+        max_length=500
+    )
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(
+        ...,
+        min_length=1
+    )
+    new_password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128
+    )
+
+
+class DashboardStats(BaseModel):
+    total_verifications: int
+    pending_verifications: int
+    running_verifications: int
+    verified_verifications: int
+    failed_verifications: int
 
 
 # ============================================================
