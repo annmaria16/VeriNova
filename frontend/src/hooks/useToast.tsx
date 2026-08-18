@@ -12,7 +12,7 @@ interface Toast {
 }
 
 interface ToastContextType {
-  toast: (message: string, type?: ToastType) => void;
+  toast: (message: any, type?: ToastType) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -20,9 +20,29 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = useCallback((message: string, type: ToastType = "info") => {
+  const toast = useCallback((message: any, type: ToastType = "info") => {
+    let msgStr = "";
+    if (message === null || message === undefined) {
+      msgStr = "";
+    } else if (typeof message === "string") {
+      msgStr = message;
+    } else if (Array.isArray(message)) {
+      msgStr = message
+        .map((err: any) => {
+          if (err && typeof err === "object" && err.msg) {
+            return err.msg;
+          }
+          return typeof err === "object" ? JSON.stringify(err) : String(err);
+        })
+        .join(", ");
+    } else if (typeof message === "object") {
+      msgStr = message.msg || message.detail || message.message || JSON.stringify(message);
+    } else {
+      msgStr = String(message);
+    }
+
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message: msgStr, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);

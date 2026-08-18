@@ -219,10 +219,6 @@ export default function UserDashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [taskStatusFilter, setTaskStatusFilter] = useState("all");
-  const [memoryEnabled, setMemoryEnabled] = useState(true);
-  const [userMemories, setUserMemories] = useState<any[]>([]);
-  const [loadingMemories, setLoadingMemories] = useState(false);
-
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<TaskDetail | null>(null);
   const [assistantLoading, setAssistantLoading] = useState(false);
@@ -421,96 +417,7 @@ export default function UserDashboard() {
     };
   }, [activeTask?.id, activeTask?.status]);
 
-  const fetchMemorySettings = async () => {
-    try {
-      const res = await api.get("/user/settings");
-      setMemoryEnabled(res.data.memory_enabled);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
-  const fetchUserMemories = async () => {
-    try {
-      setLoadingMemories(true);
-      const res = await api.get("/memory");
-      setUserMemories(res.data.memories || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingMemories(false);
-    }
-  };
-
-  const toggleMemoryConsent = async () => {
-    try {
-      const res = await api.post("/user/settings", { memory_enabled: !memoryEnabled });
-      setMemoryEnabled(res.data.memory_enabled);
-      toast("Memory consent preferences updated.");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to update memory settings.");
-    }
-  };
-
-  const forgetMemory = async (id: number) => {
-    try {
-      await api.delete(`/memory/${id}`);
-      setUserMemories((prev) => prev.filter((m) => m.id !== id));
-      toast("Preference memory forgotten successfully.");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to delete memory item.");
-    }
-  };
-
-  const clearAllMemories = async () => {
-    if (!window.confirm("Are you sure you want to clear all personalized memories?")) return;
-    try {
-      await api.post("/memory/clear");
-      setUserMemories([]);
-      toast("All stored preferences and memories cleared.");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to clear memories.");
-    }
-  };
-
-  const handleExportData = async () => {
-    try {
-      const res = await api.get("/user/export");
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
-      const downloadAnchor = document.createElement("a");
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `verinova_user_data_export.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      toast("Data export downloaded.");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to export data.");
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!window.confirm("Warning: Purging your account is permanent and deletes all verification files. Proceed?")) return;
-    try {
-      await api.post("/user/delete-account");
-      toast("Your account has been deleted successfully.");
-      handleLogout();
-    } catch (e) {
-      console.error(e);
-      toast("Failed to delete account.");
-    }
-  };
-
-  useEffect(() => {
-    if (activeSection === "profile") {
-      fetchMemorySettings();
-      fetchUserMemories();
-    }
-  }, [activeSection]);
 
   if (!user) return null;
 
@@ -678,8 +585,13 @@ export default function UserDashboard() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await api.post("/user/profile-image", formData);
+      const response = await api.post("/user/profile-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       updateUser(response.data);
+      setProfileImage(response.data.profile_image || "");
       toast("Profile photo updated successfully.", "success");
     } catch (error: any) {
       toast(error.response?.data?.detail || "Failed to upload image.", "error");
@@ -699,7 +611,7 @@ export default function UserDashboard() {
       setSavingProfile(true);
       const response = await api.put("/user/profile", {
         fullname,
-        profile_image: profileImage.trim() || null,
+        profile_image: profileImage ? profileImage.trim() : null,
       });
       updateUser(response.data);
       toast("Profile updated successfully.", "success");
@@ -1150,7 +1062,7 @@ export default function UserDashboard() {
           {activeSection === "profile" && (
             <section>
               <div className="section-heading-row"><div><div className="eyebrow">ACCOUNT</div><h2>Your profile</h2><p>Manage the identity information associated with your Verinova account.</p></div></div>
-              <div className="profile-layout">
+              <div style={{ maxWidth: "600px" }}>
                 <div className="admin-card user-panel profile-card-main">
                   <div className="admin-card-header"><div><h3 className="admin-card-title">Profile information</h3><p className="admin-card-subtitle">Changes are saved directly to your account.</p></div></div>
                   <div className="admin-card-body">
@@ -1198,69 +1110,9 @@ export default function UserDashboard() {
                     </label>
                     <label className="admin-form-group">
                       <span className="admin-form-label">Email</span>
-                      <input className="admin-form-input" value={user.email} disabled />
+                      <input className="admin-form-input" value={user.email} readOnly style={{ opacity: 0.7, cursor: "not-allowed" }} />
                     </label>
                     <button className="admin-btn admin-btn-primary" disabled={savingProfile} onClick={saveProfile}>{savingProfile ? "Saving..." : "Save profile"}</button>
-                  </div>
-                </div>
-                <div className="admin-card user-panel account-card">
-                  <div className="admin-card-header"><div><h3 className="admin-card-title">Account</h3><p className="admin-card-subtitle">Account information and trust status.</p></div></div>
-                  <div className="admin-card-body account-details">
-                    <div><span>Provider</span><strong>{user.provider}</strong></div>
-                    <div><span>Role</span><strong>User</strong></div>
-                    <div><span>Member since</span><strong>{formatDate(user.created_at)}</strong></div>
-                    <div><span>Verification requests</span><strong>{total}</strong></div>
-
-                    <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <button className="admin-btn admin-btn-secondary" style={{ width: "100%", fontSize: "11px", height: "30px", padding: "0 12px" }} onClick={handleExportData}>Export my data</button>
-                      <button className="admin-btn" style={{ width: "100%", fontSize: "11px", height: "30px", padding: "0 12px", backgroundColor: "#ef4444", color: "white" }} onClick={handleDeleteAccount}>Delete Account</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="admin-card user-panel memory-card" style={{ gridColumn: "span 2" }}>
-                  <div className="admin-card-header">
-                    <div>
-                      <h3 className="admin-card-title">Personalized Memory & Consent</h3>
-                      <p className="admin-card-subtitle">Control what the VeriNova agent remembers about your preferences.</p>
-                    </div>
-                  </div>
-                  <div className="admin-card-body">
-                    <label className="admin-form-group" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "10px", cursor: "pointer", marginBottom: "16px" }}>
-                      <input
-                        type="checkbox"
-                        checked={memoryEnabled}
-                        onChange={toggleMemoryConsent}
-                        style={{ width: "16px", height: "16px", cursor: "pointer" }}
-                      />
-                      <span><strong>Enable Persistent Memory</strong> (Agent will store preferences from your conversations)</span>
-                    </label>
-
-                    {memoryEnabled && (
-                      <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                          <h4 style={{ fontSize: "12px", fontWeight: "600" }}>Stored Preference Facts</h4>
-                          {userMemories.length > 0 && (
-                            <button className="admin-btn admin-btn-secondary" style={{ padding: "2px 8px", fontSize: "10px", height: "auto" }} onClick={clearAllMemories}>Clear all memory</button>
-                          )}
-                        </div>
-
-                        {loadingMemories ? (
-                          <div style={{ fontSize: "11px", color: "var(--dash-secondary)" }}>Loading preference memory...</div>
-                        ) : userMemories.length === 0 ? (
-                          <div style={{ fontSize: "11px", color: "var(--dash-secondary)" }}>No preferences or memory stored yet.</div>
-                        ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {userMemories.map((mem) => (
-                              <div key={mem.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", backgroundColor: "var(--bg-secondary)", borderRadius: "6px", border: "1px solid var(--border)" }}>
-                                <span style={{ fontSize: "11px" }}>• {mem.content} <small style={{ color: "var(--dash-secondary)" }}>({mem.category})</small></span>
-                                <button className="admin-btn" style={{ padding: "2px 8px", fontSize: "10px", height: "auto", color: "#ef4444" }} onClick={() => forgetMemory(mem.id)}>Forget</button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

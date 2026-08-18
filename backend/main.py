@@ -954,8 +954,10 @@ def get_current_user_profile(
     "/api/auth/google/login"
 )
 def google_login():
-    from dotenv import load_dotenv
-    load_dotenv(override=True)
+    import sys
+    if "unittest" not in sys.modules:
+        from dotenv import load_dotenv
+        load_dotenv(override=True)
     client_id = os.getenv("GOOGLE_CLIENT_ID")
     redirect_uri = os.getenv("GOOGLE_REDIRECT_URI") or f"{BACKEND_URL}/api/auth/google/callback"
 
@@ -996,8 +998,10 @@ def google_callback(
 ):
     logger.info("Google OAuth callback started")
 
-    from dotenv import load_dotenv
-    load_dotenv(override=True)
+    import sys
+    if "unittest" not in sys.modules:
+        from dotenv import load_dotenv
+        load_dotenv(override=True)
     client_id = os.getenv("GOOGLE_CLIENT_ID")
     client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
     redirect_uri = os.getenv("GOOGLE_REDIRECT_URI") or f"{BACKEND_URL}/api/auth/google/callback"
