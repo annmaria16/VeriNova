@@ -4,12 +4,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { useToast } from "../hooks/useToast";
 import api from "../services/api";
+import Logo from "../components/Logo";
 import {
   ShieldAlert,
   Users,
   CheckCircle2,
-  Package,
-  ShoppingCart,
   Settings,
   LogOut,
   Search,
@@ -27,6 +26,105 @@ import {
   Send
 } from "lucide-react";
 
+const formatEvidenceData = (ev: any) => {
+  if (!ev.evidence_data) return null;
+  let evidence = ev.evidence_data;
+  if (typeof evidence === "string") {
+    try {
+      evidence = JSON.parse(evidence);
+    } catch {
+      return <div style={{ marginTop: "4px", color: "var(--dash-secondary)", fontSize: "9px" }}>{evidence}</div>;
+    }
+  }
+  const data = evidence.data;
+  if (!data) return null;
+  
+  if (ev.source_type === "calculator") {
+    return (
+      <div style={{ marginTop: "4px", color: "#10b981", fontSize: "9px" }}>
+        📊 <strong>Result:</strong> {data.expression} = {data.result}
+      </div>
+    );
+  }
+  if (ev.source_type === "web_search") {
+    const results = data.results || [];
+    return (
+      <div style={{ marginTop: "4px", color: "var(--dash-secondary)", fontSize: "9px" }}>
+        🌐 <strong>Found {results.length} search matches:</strong>
+        <ul style={{ margin: "2px 0 0", paddingLeft: "12px" }}>
+          {results.slice(0, 3).map((r: any, idx: number) => (
+            <li key={idx}>
+              <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--dash-primary)", textDecoration: "underline" }}>
+                {r.title || r.source || "Link"}
+              </a>: {r.snippet ? r.snippet.substring(0, 80) + "..." : ""}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  if (ev.source_type === "web_fetch") {
+    return (
+      <div style={{ marginTop: "4px", color: "var(--dash-secondary)", fontSize: "9px" }}>
+        📄 <strong>Fetched URL text:</strong> {data.text ? data.text.substring(0, 100) + "..." : "No text"}
+      </div>
+    );
+  }
+  if (ev.source_type === "database_lookup") {
+    return (
+      <div style={{ marginTop: "4px", color: "var(--dash-secondary)", fontSize: "9px" }}>
+        🗄️ <strong>Lookup type:</strong> {data.operation}. Found {Array.isArray(data.data) ? data.data.length : 1} records.
+      </div>
+    );
+  }
+  if (ev.source_type === "verification") {
+    return (
+      <div style={{ marginTop: "4px", color: "#10b981", fontSize: "9px" }}>
+        🔍 <strong>Verification result:</strong> {data.verification_status} ({Number(data.confidence_score).toFixed(1)}% confidence)
+      </div>
+    );
+  }
+  return null;
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  created: "Created",
+  queued: "Queued",
+  planning: "Planning",
+  running: "Running",
+  verifying: "Verifying",
+  completed: "Completed",
+  partially_completed: "Partially Completed",
+  needs_review: "Needs Review",
+  failed: "Failed",
+  cancelled: "Cancelled",
+  requires_confirmation: "Awaiting Action",
+  waiting_for_user: "Awaiting Action",
+  collecting_evidence: "Collecting Evidence",
+  analyzing: "Analyzing",
+  evaluating: "Evaluating",
+  verified: "Verified",
+  awaiting_admin_review: "Under Review",
+  approved: "Approved",
+  rejected: "Rejected",
+  inconclusive: "Inconclusive",
+};
+
+function statusLabel(status: string) {
+  if (!status) return "";
+  return STATUS_LABEL[status.toLowerCase()] ?? status.replaceAll("_", " ");
+}
+
+function statusClass(status: string) {
+  if (!status) return "running";
+  const s = status.toLowerCase();
+  if (["completed", "verified", "approved"].includes(s)) return "verified";
+  if (["failed", "rejected", "cancelled"].includes(s)) return "failed";
+  if (["pending", "created", "queued", "requires_confirmation", "waiting_for_user"].includes(s)) return "pending";
+  if (["needs_review", "awaiting_admin_review", "inconclusive", "partially_completed"].includes(s)) return "warning";
+  return "running";
+}
+
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +134,16 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [contactMessages, setContactMessages] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [executions, setExecutions] = useState<any[]>([]);
+  const [evidenceList, setEvidenceList] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [selectedReview, setSelectedReview] = useState<any | null>(null);
+  const [reviewReason, setReviewReason] = useState("");
+  const [overrideConfidence, setOverrideConfidence] = useState("");
+  const [overrideResult, setOverrideResult] = useState("");
+  const [reviewActionLoading, setReviewActionLoading] = useState(false);
+
   const [activeTab, setActiveTab] = useState("overview"); // overview or messages
   const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
   const [messageFilter, setMessageFilter] = useState("all"); // all, unread, archived
@@ -47,17 +155,59 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const fetchReviews = async () => {
+    try {
+      const res = await api.get("/admin/reviews");
+      setReviews(res.data);
+    } catch (err) {
+      toast("Failed to load tasks needing review", "error");
+    }
+  };
+
+  const fetchExecutions = async () => {
+    try {
+      const res = await api.get("/admin/executions");
+      setExecutions(res.data);
+    } catch (err) {
+      toast("Failed to load execution logs", "error");
+    }
+  };
+
+  const fetchEvidence = async () => {
+    try {
+      const res = await api.get("/admin/evidence");
+      setEvidenceList(res.data);
+    } catch (err) {
+      toast("Failed to load evidence records", "error");
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      const res = await api.get("/admin/audit-logs");
+      setAuditLogs(res.data);
+    } catch (err) {
+      toast("Failed to load audit logs", "error");
+    }
+  };
+
   // Load real-time admin statistics
   const loadData = async () => {
     try {
-      const [usersRes, tasksRes, messagesRes] = await Promise.all([
+      const [usersRes, tasksRes, messagesRes, reviewsRes, execRes, evRes] = await Promise.all([
         api.get("/admin/users"),
         api.get("/admin/tasks"),
-        api.get("/admin/contact-messages")
+        api.get("/admin/contact-messages"),
+        api.get("/admin/reviews"),
+        api.get("/admin/executions"),
+        api.get("/admin/evidence")
       ]);
       setUsers(usersRes.data);
       setTasks(tasksRes.data);
       setContactMessages(messagesRes.data);
+      setReviews(reviewsRes.data);
+      setExecutions(execRes.data);
+      setEvidenceList(evRes.data);
     } catch (error) {
       console.error("Failed to load admin dashboard statistics", error);
     } finally {
@@ -68,6 +218,60 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "reviews") {
+      fetchReviews();
+    } else if (activeTab === "executions") {
+      fetchExecutions();
+    } else if (activeTab === "evidence") {
+      fetchEvidence();
+    } else if (activeTab === "audit-logs") {
+      fetchAuditLogs();
+    } else if (activeTab === "tasks") {
+      loadData();
+    }
+  }, [activeTab]);
+
+  const handleReviewAction = async (action: "approve" | "reject" | "override") => {
+    if (!selectedReview) return;
+    const reason = reviewReason.trim();
+    if (!reason) {
+      toast("Review action reason is required.", "error");
+      return;
+    }
+    
+    const body: any = { reason };
+    if (action === "override") {
+      if (overrideConfidence.trim()) {
+        const conf = parseFloat(overrideConfidence);
+        if (isNaN(conf) || conf < 0 || conf > 100) {
+          toast("Confidence score must be a number between 0 and 100", "error");
+          return;
+        }
+        body.confidence_score = conf;
+      }
+      if (overrideResult.trim()) {
+        body.final_result = overrideResult.trim();
+      }
+    }
+    
+    setReviewActionLoading(true);
+    try {
+      await api.post(`/admin/reviews/${selectedReview.id}/${action}`, body);
+      toast(`Successfully submitted ${action.toUpperCase()} action for Task #${selectedReview.id}`, "success");
+      setReviewReason("");
+      setOverrideConfidence("");
+      setOverrideResult("");
+      setSelectedReview(null);
+      fetchReviews();
+      loadData(); // Reload stats
+    } catch (err) {
+      toast(`Failed to execute review ${action}`, "error");
+    } finally {
+      setReviewActionLoading(false);
+    }
+  };
 
   if (!user) {
     return null;
@@ -183,10 +387,15 @@ export default function AdminDashboard() {
     );
   });
 
-  // Mock Notifications for Admin
-  const notifications = [
-    { id: 1, text: "Platform connection established.", time: "Just now", unread: true },
-  ];
+  // Notifications generated dynamically from the review queue
+  const notifications = tasks
+    .filter((t) => ["needs_review", "awaiting_admin_review", "failed"].includes(t.status))
+    .map((t) => ({
+      id: t.id,
+      text: `Verification #${t.id} ("${t.title.slice(0, 30)}...") requires attention.`,
+      time: "Requires Review",
+      unread: true
+    }));
 
   // User Map to map tasks to actual registered users' names
   const userMap = new Map(users.map((u: any) => [u.id, u.fullname]));
@@ -194,12 +403,10 @@ export default function AdminDashboard() {
   // Stats computations from database records
   const totalUsers = users.filter((u: any) => u.role === "user").length;
   const totalVerifications = tasks.length;
-  const activeProducts = 0; // Backend does not support product tables
-  const pendingOrders = 0; // Backend does not support order tables
 
-  // Filter tasks that are pending review
+  // Filter tasks that require human attention (high-risk, low confidence, needs review, failed)
   const pendingTasks = tasks.filter((t) => 
-    ["pending", "received", "executing", "verifying", "in_progress"].includes(t.status)
+    ["needs_review", "awaiting_admin_review", "failed"].includes(t.status)
   );
 
   // Group task volume by month for SVG Chart
@@ -244,13 +451,7 @@ export default function AdminDashboard() {
       ===================================================== */}
       <aside className="admin-sidebar">
         <div className="admin-logo">
-          <div className="admin-logo-mark">
-            <ShieldCheck size={22} className="admin-logo-icon" />
-          </div>
-          <div>
-            <h2>VeriNova AI</h2>
-            <span>Admin Center</span>
-          </div>
+          <Logo subtitle="Admin Center" size="sm" />
         </div>
 
         <nav className="admin-nav">
@@ -263,15 +464,47 @@ export default function AdminDashboard() {
           </button>
 
           <button
-            className={`admin-nav-item ${activeTab === "messages" ? "active" : ""}`}
+            className={`admin-nav-item ${activeTab === "reviews" ? "active" : ""}`}
             onClick={() => {
-              setActiveTab("messages");
-              setSelectedMessage(null);
+              setActiveTab("reviews");
+              setSelectedReview(null);
             }}
           >
-            <Mail size={18} />
-            <span>Messages</span>
-            {newCount > 0 && <span className="admin-nav-badge">{newCount}</span>}
+            <ShieldAlert size={18} />
+            <span>Needs Review</span>
+            {reviews.length > 0 && <span className="admin-nav-badge" style={{ background: "#ef4444" }}>{reviews.length}</span>}
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === "tasks" ? "active" : ""}`}
+            onClick={() => setActiveTab("tasks")}
+          >
+            <CheckCircle2 size={18} />
+            <span>Tasks</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === "executions" ? "active" : ""}`}
+            onClick={() => setActiveTab("executions")}
+          >
+            <Layers size={18} />
+            <span>Executions</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === "evidence" ? "active" : ""}`}
+            onClick={() => setActiveTab("evidence")}
+          >
+            <ShieldCheck size={18} />
+            <span>Evidence</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === "audit-logs" ? "active" : ""}`}
+            onClick={() => setActiveTab("audit-logs")}
+          >
+            <ShieldCheck size={18} />
+            <span>Audit Logs</span>
           </button>
 
           <button
@@ -282,24 +515,16 @@ export default function AdminDashboard() {
             <span>Users</span>
           </button>
 
-          <button className="admin-nav-item" onClick={() => handleAction("Verification Requests Queue")}>
-            <CheckCircle2 size={18} />
-            <span>Verifications</span>
-          </button>
-
-          <button className="admin-nav-item" onClick={() => handleAction("Product Inventory")}>
-            <Package size={18} />
-            <span>Products</span>
-          </button>
-
-          <button className="admin-nav-item" onClick={() => handleAction("Orders database")}>
-            <ShoppingCart size={18} />
-            <span>Orders</span>
-          </button>
-
-          <button className="admin-nav-item" onClick={() => handleAction("Settings panel")}>
-            <Settings size={18} />
-            <span>Settings</span>
+          <button
+            className={`admin-nav-item ${activeTab === "messages" ? "active" : ""}`}
+            onClick={() => {
+              setActiveTab("messages");
+              setSelectedMessage(null);
+            }}
+          >
+            <Mail size={18} />
+            <span>Messages</span>
+            {newCount > 0 && <span className="admin-nav-badge">{newCount}</span>}
           </button>
         </nav>
 
@@ -405,48 +630,123 @@ export default function AdminDashboard() {
             {/* =====================================================
                 STATS ROW
             ===================================================== */}
-            <section className="stats-row">
+            <section className="stats-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "15px", marginBottom: "20px", width: "100%" }}>
               <div className="stat-card purple-theme">
-                <div className="stat-icon-wrapper">
-                  <Users size={20} />
-                </div>
+                <div className="stat-icon-wrapper"><Users size={20} /></div>
                 <div className="stat-details">
                   <span>Total Users</span>
                   <strong>{totalUsers}</strong>
-                  <small>All time</small>
+                  <small>Registered accounts</small>
                 </div>
               </div>
 
               <div className="stat-card green-theme">
-                <div className="stat-icon-wrapper">
-                  <CheckCircle2 size={20} />
-                </div>
+                <div className="stat-icon-wrapper"><CheckCircle2 size={20} /></div>
                 <div className="stat-details">
-                  <span>Verifications</span>
+                  <span>Total Tasks</span>
                   <strong>{totalVerifications}</strong>
-                  <small>This month</small>
+                  <small>All operations</small>
                 </div>
               </div>
 
               <div className="stat-card orange-theme">
-                <div className="stat-icon-wrapper">
-                  <Package size={20} />
-                </div>
+                <div className="stat-icon-wrapper"><Clock size={20} /></div>
                 <div className="stat-details">
-                  <span>Products Listed</span>
-                  <strong>{activeProducts}</strong>
-                  <small>Active</small>
+                  <span>Running Tasks</span>
+                  <strong>{tasks.filter((t: any) => ["planning", "collecting_evidence", "analyzing", "verifying", "evaluating", "executing", "running", "queued"].includes(t.status)).length}</strong>
+                  <small>Currently active</small>
                 </div>
               </div>
 
-              <div className="stat-card red-theme">
-                <div className="stat-icon-wrapper">
-                  <ShoppingCart size={20} />
-                </div>
+              <div className="stat-card green-theme">
+                <div className="stat-icon-wrapper"><CheckCircle2 size={20} /></div>
                 <div className="stat-details">
-                  <span>Platform Orders</span>
-                  <strong>{pendingOrders}</strong>
-                  <small>Pending</small>
+                  <span>Completed Tasks</span>
+                  <strong>{tasks.filter((t: any) => ["completed", "verified", "approved"].includes(t.status)).length}</strong>
+                  <small>Successful outcomes</small>
+                </div>
+              </div>
+
+              <div className="stat-card red-theme" style={{ background: "#fff0f0", color: "#d43c3c" }}>
+                <div className="stat-icon-wrapper" style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444" }}><X size={20} /></div>
+                <div className="stat-details">
+                  <span style={{ color: "#7f1d1d" }}>Failed Tasks</span>
+                  <strong style={{ color: "#d43c3c" }}>{tasks.filter((t: any) => ["failed", "rejected"].includes(t.status)).length}</strong>
+                  <small style={{ color: "#b91c1c" }}>Errors & Rejections</small>
+                </div>
+              </div>
+
+              <div className="stat-card orange-theme">
+                <div className="stat-icon-wrapper"><Clock size={20} /></div>
+                <div className="stat-details">
+                  <span>Needs Review</span>
+                  <strong>{tasks.filter((t: any) => ["needs_review", "awaiting_admin_review"].includes(t.status)).length}</strong>
+                  <small>Awaiting attention</small>
+                </div>
+              </div>
+
+              <div className="stat-card purple-theme">
+                <div className="stat-icon-wrapper"><Layers size={20} /></div>
+                <div className="stat-details">
+                  <span>Success Rate</span>
+                  <strong>
+                    {Number(
+                      (tasks.filter((t: any) => ["completed", "verified", "approved"].includes(t.status)).length /
+                        (tasks.filter((t: any) => ["completed", "verified", "approved", "failed", "rejected", "inconclusive"].includes(t.status)).length || 1)) *
+                        100
+                    ).toFixed(0)}%
+                  </strong>
+                  <small>Verification quality</small>
+                </div>
+              </div>
+
+              <div className="stat-card green-theme">
+                <div className="stat-icon-wrapper"><ShieldCheck size={20} /></div>
+                <div className="stat-details">
+                  <span>Agent Activity</span>
+                  <strong>{tasks.some((t: any) => ["planning", "collecting_evidence", "analyzing", "verifying", "evaluating", "executing", "running"].includes(t.status)) ? "ACTIVE" : "IDLE"}</strong>
+                  <small>AI Agent daemon state</small>
+                </div>
+              </div>
+
+              <div className="stat-card purple-theme">
+                <div className="stat-icon-wrapper"><Clock size={20} /></div>
+                <div className="stat-details">
+                  <span>Agent Executions</span>
+                  <strong>{executions.length}</strong>
+                  <small>Total tool actions logged</small>
+                </div>
+              </div>
+
+              <div className="stat-card green-theme">
+                <div className="stat-icon-wrapper"><ShieldCheck size={20} /></div>
+                <div className="stat-details">
+                  <span>Successful Tools</span>
+                  <strong>{evidenceList.length}</strong>
+                  <small>Successful tool steps</small>
+                </div>
+              </div>
+
+              <div className="stat-card red-theme" style={{ background: "#fff0f0", color: "#d43c3c" }}>
+                <div className="stat-icon-wrapper" style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444" }}><ShieldAlert size={20} /></div>
+                <div className="stat-details">
+                  <span style={{ color: "#7f1d1d" }}>Tool Failures</span>
+                  <strong style={{ color: "#d43c3c" }}>{executions.filter((e: any) => e.status === "failed" || e.step === "tool_execution_failed").length}</strong>
+                  <small style={{ color: "#b91c1c" }}>Errors in execution</small>
+                </div>
+              </div>
+
+              <div className="stat-card purple-theme">
+                <div className="stat-icon-wrapper"><Layers size={20} /></div>
+                <div className="stat-details">
+                  <span>Average Confidence</span>
+                  <strong>
+                    {Number(
+                      tasks.filter((t: any) => t.confidence_score != null).reduce((sum: number, t: any) => sum + t.confidence_score, 0) /
+                        (tasks.filter((t: any) => t.confidence_score != null).length || 1)
+                    ).toFixed(1)}%
+                  </strong>
+                  <small>Average confidence score</small>
                 </div>
               </div>
             </section>
@@ -597,15 +897,6 @@ export default function AdminDashboard() {
                     </div>
                   </button>
 
-                  <button className="action-button-card" onClick={() => handleAction("Products catalogs")}>
-                    <div className="action-icon orange-bg">
-                      <Package size={18} />
-                    </div>
-                    <div className="action-text">
-                      <h3>Marketplace Control</h3>
-                      <p>Manage product listing claims</p>
-                    </div>
-                  </button>
 
                   <button className="action-button-card" onClick={() => handleAction("System log auditor")}>
                     <div className="action-icon red-bg">
@@ -637,6 +928,475 @@ export default function AdminDashboard() {
               </section>
             </div>
           </>
+        ) : activeTab === "reviews" ? (
+          /* =====================================================
+              EXCEPTION REVIEWS VIEW
+          ===================================================== */
+          <div className="dashboard-grid-two-cols messages-split-layout">
+            {/* Left Column: Tasks List */}
+            <section className="dashboard-panel messages-list-panel text-left">
+              <div className="panel-header-messages">
+                <h2>Needs Review ({reviews.length})</h2>
+              </div>
+
+              {loading ? (
+                <div className="loading-state">Loading reviews queue...</div>
+              ) : reviews.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">✓</div>
+                  <h3>No Reviews Pending</h3>
+                  <p>All tasks have resolved automatically with high confidence.</p>
+                </div>
+              ) : (
+                <div className="contact-messages-list">
+                  {reviews.map((taskItem) => {
+                    const isSelected = selectedReview && selectedReview.id === taskItem.id;
+                    const applicantName = users.find(u => u.id === taskItem.user_id)?.fullname || `User #${taskItem.user_id}`;
+                    return (
+                      <div
+                        key={taskItem.id}
+                        onClick={async () => {
+                          setSelectedReview(taskItem);
+                          try {
+                            const detailRes = await api.get(`/admin/tasks/${taskItem.id}/conversation`);
+                            setSelectedReview(detailRes.data);
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className={`message-list-item ${isSelected ? "selected" : ""}`}
+                        style={{ padding: "12px", borderBottom: "1px solid var(--dash-border)", cursor: "pointer" }}
+                      >
+                        <div className="msg-header" style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                          <strong className="msg-sender" style={{ fontSize: "13px" }}>{applicantName}</strong>
+                          <span className="msg-date" style={{ fontSize: "11px", color: "var(--dash-secondary)" }}>
+                            #{taskItem.id}
+                          </span>
+                        </div>
+                        <div className="msg-subject" style={{ fontSize: "12px", fontWeight: 700, margin: "2px 0" }}>{taskItem.title}</div>
+                        <div className="msg-body-preview" style={{ fontSize: "11px", color: "var(--dash-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {taskItem.description}
+                        </div>
+                        <div style={{ display: "flex", gap: "8px", marginTop: "6px", alignItems: "center" }}>
+                          <span className="status-pill warning" style={{ fontSize: "9px", padding: "2px 6px" }}>{taskItem.review_status}</span>
+                          <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--dash-primary)" }}>
+                            {taskItem.confidence_score != null ? `${Number(taskItem.confidence_score).toFixed(0)}% Conf.` : "No Confidence Score"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Right Column: Selected Task Details */}
+            <section className="dashboard-panel message-detail-panel text-left">
+              {selectedReview ? (
+                <div className="message-detail-view" style={{ height: "100%", display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div className="detail-header" style={{ borderBottom: "1px solid var(--dash-border)", paddingBottom: "12px" }}>
+                    <div className="detail-meta">
+                      <span style={{ fontSize: "10px", color: "var(--dash-primary)", fontWeight: 700, textTransform: "uppercase" }}>TASK REVIEW PANEL</span>
+                      <h2 style={{ fontSize: "16px", margin: "4px 0" }}>{selectedReview.title}</h2>
+                      <div className="sender-info-line" style={{ fontSize: "11px", color: "var(--dash-secondary)" }}>
+                        <strong>User:</strong> {users.find(u => u.id === selectedReview.user_id)?.fullname || `User #${selectedReview.user_id}`}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="detail-body-container" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "15px", paddingRight: "5px" }}>
+                    <div style={{ background: "var(--dash-bg)", padding: "12px", borderRadius: "10px", border: "1px solid var(--dash-border)" }}>
+                      <h4 style={{ fontSize: "12px", margin: "0 0 6px 0", color: "var(--dash-primary)" }}>Request Description</h4>
+                      <p style={{ margin: 0, fontSize: "12px", color: "var(--dash-text)", whiteSpace: "pre-wrap" }}>{selectedReview.description || "No description provided."}</p>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                        <span style={{ fontSize: "9px", color: "var(--dash-secondary)", textTransform: "uppercase" }}>Verification Status</span>
+                        <strong style={{ display: "block", fontSize: "13px", color: "#ef4444" }}>{selectedReview.verification_status || "NEEDS_REVIEW"}</strong>
+                      </div>
+                      <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                        <span style={{ fontSize: "9px", color: "var(--dash-secondary)", textTransform: "uppercase" }}>AI Confidence</span>
+                        <strong style={{ display: "block", fontSize: "13px", color: "var(--dash-primary)" }}>{selectedReview.confidence_score != null ? `${Number(selectedReview.confidence_score).toFixed(1)}%` : "N/A"}</strong>
+                      </div>
+                    </div>
+
+                    {selectedReview.verification_explanation && (
+                      <div style={{ background: "rgba(239, 68, 68, 0.05)", borderLeft: "3px solid #ef4444", padding: "10px", borderRadius: "6px" }}>
+                        <strong style={{ fontSize: "10px", color: "#ef4444", textTransform: "uppercase", display: "block", marginBottom: "4px" }}>Engine Assessment Explanation</strong>
+                        <p style={{ margin: 0, fontSize: "11px", color: "var(--dash-text)" }}>{selectedReview.verification_explanation}</p>
+                      </div>
+                    )}
+
+                    {selectedReview.plan && (
+                      <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                        <strong style={{ fontSize: "11px", color: "var(--dash-primary)", display: "block", marginBottom: "6px" }}>📋 AI Agent Plan</strong>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {selectedReview.plan.steps?.map((step: any) => (
+                            <div key={step.step_number} style={{ display: "flex", gap: "8px", background: "var(--brand-card)", padding: "5px 8px", borderRadius: "6px", border: "1px solid var(--dash-border)", fontSize: "10px" }}>
+                              <span style={{ display: "grid", placeItems: "center", width: "16px", height: "16px", background: "var(--dash-primary)", color: "white", borderRadius: "50%", fontSize: "9px", fontWeight: 800, flexShrink: 0 }}>
+                                {step.step_number}
+                              </span>
+                              <div>
+                                <strong>{step.description}</strong>
+                                <span style={{ color: "var(--dash-secondary)", fontSize: "9px", display: "block" }}>Tool: {step.tool}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(() => {
+                      const selectedExecutions = executions.filter(e => e.task_id === selectedReview.id);
+                      const selectedEvidence = evidenceList.filter(ev => ev.task_id === selectedReview.id);
+                      return (
+                        <>
+                          {selectedExecutions.length > 0 && (
+                            <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                              <strong style={{ fontSize: "11px", color: "var(--dash-primary)", display: "block", marginBottom: "6px" }}>⚙️ Tool Execution Activity</strong>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                {selectedExecutions.map((log) => (
+                                  <div key={log.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--brand-card)", padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--dash-border)", fontSize: "10px" }}>
+                                    <div>
+                                      <strong style={{ display: "block", textTransform: "capitalize" }}>{log.step.replace(/_/g, " ")} ({log.duration_ms}ms)</strong>
+                                      <span style={{ color: "var(--dash-secondary)", fontSize: "9px" }}>{log.message}</span>
+                                    </div>
+                                    <span className={`status-pill ${log.status === "completed" ? "verified" : log.status === "failed" ? "failed" : "pending"}`} style={{ fontSize: "8px" }}>{log.status}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedEvidence.length > 0 && (
+                            <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                              <strong style={{ fontSize: "11px", color: "var(--dash-primary)", display: "block", marginBottom: "6px" }}>🔍 Captured Evidence ({selectedEvidence.length})</strong>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                {selectedEvidence.map((ev) => (
+                                  <div key={ev.id} style={{ background: "var(--brand-card)", padding: "6px 8px", borderRadius: "6px", border: "1px solid var(--dash-border)", fontSize: "10px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                                      <strong>Source: {ev.source_name}</strong>
+                                      <span style={{ color: "var(--dash-secondary)", fontSize: "9px" }}>{new Date(ev.collected_at).toLocaleTimeString()}</span>
+                                    </div>
+                                    <p style={{ margin: 0, color: "var(--dash-secondary)", fontSize: "9px", marginBottom: "4px" }}>{ev.description}</p>
+                                    {formatEvidenceData(ev)}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+
+                    {/* Evidence Section */}
+                    {selectedReview.messages && selectedReview.messages.some((m: any) => m.message_type === "result") && (
+                      <div style={{ background: "var(--dash-bg)", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)" }}>
+                        <strong style={{ fontSize: "11px", color: "var(--dash-primary)", display: "block", marginBottom: "6px" }}>📝 Verification Messages & Evidence</strong>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {selectedReview.messages.filter((m: any) => m.message_type === "result").map((m: any) => (
+                            <div key={m.id} style={{ background: "var(--brand-card)", padding: "8px", borderRadius: "6px", border: "1px solid var(--dash-border)", fontSize: "11px" }}>
+                              <div style={{ color: "var(--dash-secondary)", fontSize: "9px", marginBottom: "4px" }}>Assistant Result Payload:</div>
+                              <div style={{ whiteSpace: "pre-wrap" }}>{m.message}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Review Decision Form */}
+                    <div style={{ borderTop: "1px solid var(--dash-border)", paddingTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <h3 style={{ fontSize: "13px", fontWeight: 800, color: "var(--dash-text)", margin: 0 }}>Administrative Decision Layer</h3>
+                      
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <label style={{ fontSize: "10px", color: "var(--dash-secondary)", fontWeight: 700 }}>REASON FOR ACTION (AUDITED)</label>
+                        <textarea
+                          value={reviewReason}
+                          onChange={(e) => setReviewReason(e.target.value)}
+                          placeholder="Provide the reason for this administrative review decision. This will be recorded permanently in the audit logs."
+                          rows={3}
+                          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid var(--dash-border)", background: "var(--dash-bg)", color: "var(--dash-text)", resize: "none", fontSize: "12px" }}
+                        />
+                      </div>
+
+                      <div style={{ background: "rgba(255,107,0,0.03)", border: "1px dashed var(--dash-border)", padding: "10px", borderRadius: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <span style={{ fontSize: "10px", color: "var(--dash-primary)", fontWeight: 700 }}>OVERRIDE VALUES (OPTIONAL)</span>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          <input
+                            type="number"
+                            placeholder="New Confidence %"
+                            value={overrideConfidence}
+                            onChange={(e) => setOverrideConfidence(e.target.value)}
+                            style={{ padding: "8px", border: "1px solid var(--dash-border)", background: "var(--dash-bg)", color: "var(--dash-text)", borderRadius: "6px", fontSize: "11px" }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="New Final Result text"
+                            value={overrideResult}
+                            onChange={(e) => setOverrideResult(e.target.value)}
+                            style={{ padding: "8px", border: "1px solid var(--dash-border)", background: "var(--dash-bg)", color: "var(--dash-text)", borderRadius: "6px", fontSize: "11px" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "5px" }}>
+                        <button
+                          onClick={() => handleReviewAction("reject")}
+                          disabled={reviewActionLoading || !reviewReason.trim()}
+                          className="action-pill-btn delete"
+                          style={{ padding: "10px 15px", fontSize: "12px", fontWeight: 700, borderRadius: "8px", display: "flex", alignItems: "center", gap: "5px" }}
+                        >
+                          Reject Request
+                        </button>
+                        <button
+                          onClick={() => handleReviewAction("approve")}
+                          disabled={reviewActionLoading || !reviewReason.trim()}
+                          className="action-pill-btn read"
+                          style={{ padding: "10px 15px", fontSize: "12px", fontWeight: 700, borderRadius: "8px", display: "flex", alignItems: "center", gap: "5px" }}
+                        >
+                          Approve Request
+                        </button>
+                        <button
+                          onClick={() => handleReviewAction("override")}
+                          disabled={reviewActionLoading || !reviewReason.trim()}
+                          className="action-pill-btn archive"
+                          style={{ padding: "10px 15px", fontSize: "12px", fontWeight: 700, borderRadius: "8px", background: "var(--dash-primary)", color: "white", display: "flex", alignItems: "center", gap: "5px" }}
+                        >
+                          Override Result
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="empty-state" style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <div className="empty-icon">🛡</div>
+                  <h3>Select a Task for Review</h3>
+                  <p>Pick a request from the sidebar queue to perform auditing actions.</p>
+                </div>
+              )}
+            </section>
+          </div>
+
+        ) : activeTab === "tasks" ? (
+          /* =====================================================
+              ALL TASKS MONITORING VIEW
+          ===================================================== */
+          <div className="dashboard-grid-one-col" style={{ width: "100%" }}>
+            <section className="dashboard-panel full-width-panel text-left">
+              <div className="panel-header" style={{ marginBottom: "15px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: 800 }}>Platform Tasks Monitor</h2>
+                <span style={{ fontSize: "12px", color: "var(--dash-secondary)" }}>Audit all user request flows and verification scores</span>
+              </div>
+
+              <div className="users-table-container" style={{ width: "100%", overflowX: "auto" }}>
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User</th>
+                      <th>Title</th>
+                      <th>Task Type</th>
+                      <th>Status</th>
+                      <th>Verification</th>
+                      <th>Confidence</th>
+                      <th>Admin Review</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.filter(t => {
+                      if (!searchQuery) return true;
+                      return t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                             String(t.id).includes(searchQuery);
+                    }).map((t) => {
+                      const userObj = users.find(u => u.id === t.user_id);
+                      return (
+                        <tr key={t.id}>
+                          <td>#{t.id}</td>
+                          <td style={{ fontWeight: 700 }}>{userObj ? userObj.fullname : `User #${t.user_id}`}</td>
+                          <td>{t.title}</td>
+                          <td><code style={{ fontSize: "10px", background: "var(--dash-bg)", padding: "2px 4px", borderRadius: "4px" }}>{t.task_type.toUpperCase()}</code></td>
+                          <td>
+                            <span className={`status-pill ${statusClass(t.status)}`}>
+                              {statusLabel(t.status)}
+                            </span>
+                          </td>
+                          <td>
+                            <strong style={{ color: t.verification_status === "VERIFIED" ? "#10b981" : t.verification_status === "CONFLICTED" ? "#ef4444" : "var(--dash-secondary)", fontSize: "11px" }}>
+                              {t.verification_status || "NOT_STARTED"}
+                            </strong>
+                          </td>
+                          <td style={{ fontWeight: 700 }}>{t.confidence_score != null ? `${Number(t.confidence_score).toFixed(1)}%` : "—"}</td>
+                          <td>
+                            <span className={`status-pill ${t.review_status === "REQUIRED" ? "failed" : t.review_status === "NOT_REQUIRED" ? "verified" : "warning"}`} style={{ fontSize: "10px" }}>
+                              {t.review_status === "REQUIRED" ? "REQUIRED" : t.review_status === "NOT_REQUIRED" ? "NOT REQUIRED" : t.review_status}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: "11px" }}>{new Date(t.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        ) : activeTab === "executions" ? (
+          /* =====================================================
+              AGENT EXECUTIONS LOG VIEW
+          ===================================================== */
+          <div className="dashboard-grid-one-col" style={{ width: "100%" }}>
+            <section className="dashboard-panel full-width-panel text-left">
+              <div className="panel-header" style={{ marginBottom: "15px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: 800 }}>Agent Execution Trace Log</h2>
+                <span style={{ fontSize: "12px", color: "var(--dash-secondary)" }}>View real-time engine processing steps and loop timings</span>
+              </div>
+
+              <div className="users-table-container" style={{ width: "100%", overflowX: "auto" }}>
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>Log ID</th>
+                      <th>Task ID</th>
+                      <th>Step</th>
+                      <th>Message / Action</th>
+                      <th>Status</th>
+                      <th>Timing</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {executions.map((log) => (
+                      <tr key={log.id}>
+                        <td>#{log.id}</td>
+                        <td><strong style={{ color: "var(--dash-primary)" }}>#{log.task_id}</strong></td>
+                        <td><code style={{ fontSize: "10px", background: "var(--dash-bg)", padding: "2px 4px", borderRadius: "4px" }}>{log.step}</code></td>
+                        <td style={{ maxWidth: "350px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={log.message}>{log.message}</td>
+                        <td>
+                          <span className={`status-pill ${log.status === "completed" ? "verified" : "failed"}`}>
+                            {log.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>{log.duration_ms ? `${log.duration_ms} ms` : "—"}</td>
+                        <td style={{ fontSize: "11px" }}>{new Date(log.created_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        ) : activeTab === "evidence" ? (
+          /* =====================================================
+              EVIDENCE GATHERED MONITOR
+          ===================================================== */
+          <div className="dashboard-grid-one-col" style={{ width: "100%" }}>
+            <section className="dashboard-panel full-width-panel text-left">
+              <div className="panel-header" style={{ marginBottom: "15px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: 800 }}>Evidence Collector Registry</h2>
+                <span style={{ fontSize: "12px", color: "var(--dash-secondary)" }}>Audit all facts and datasets pulled from connected API verifiers</span>
+              </div>
+
+              <div className="users-table-container" style={{ width: "100%", overflowX: "auto" }}>
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>Ev. ID</th>
+                      <th>Task ID</th>
+                      <th>Source Type</th>
+                      <th>Source Name</th>
+                      <th>Description</th>
+                      <th>Status</th>
+                      <th>Collected Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evidenceList.map((ev) => (
+                      <tr key={ev.id}>
+                        <td>#{ev.id}</td>
+                        <td><strong style={{ color: "var(--dash-primary)" }}>#{ev.task_id}</strong></td>
+                        <td><span style={{ textTransform: "capitalize" }}>{ev.source_type}</span></td>
+                        <td style={{ fontWeight: 700 }}>{ev.source_name}</td>
+                        <td style={{ maxWidth: "400px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={ev.description}>{ev.description}</td>
+                        <td>
+                          <span className={`status-pill ${ev.status === "passed" ? "verified" : ev.status === "warning" ? "warning" : "failed"}`}>
+                            {ev.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: "11px" }}>{new Date(ev.collected_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        ) : activeTab === "audit-logs" ? (
+          /* =====================================================
+              ADMINISTRATIVE AUDIT LOGS
+          ===================================================== */
+          <div className="dashboard-grid-one-col" style={{ width: "100%" }}>
+            <section className="dashboard-panel full-width-panel text-left">
+              <div className="panel-header" style={{ marginBottom: "15px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: 800 }}>Platform Audit Trail</h2>
+                <span style={{ fontSize: "12px", color: "var(--dash-secondary)" }}>Permanent tamper-proof log of administrator review decisions</span>
+              </div>
+
+              <div className="users-table-container" style={{ width: "100%", overflowX: "auto" }}>
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>Audit ID</th>
+                      <th>Admin User</th>
+                      <th>Task ID</th>
+                      <th>Action</th>
+                      <th>State Change</th>
+                      <th>Justification / Reason</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: "center", color: "var(--dash-secondary)", padding: "20px" }}>
+                          No administrative review decisions have been logged yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      auditLogs.map((log) => {
+                        const adminName = users.find((u: any) => u.id === log.admin_user_id)?.fullname || `Admin #${log.admin_user_id}`;
+                        return (
+                          <tr key={log.id}>
+                            <td>#{log.id}</td>
+                            <td style={{ fontWeight: 700 }}>{adminName}</td>
+                            <td><strong style={{ color: "var(--dash-primary)" }}>#{log.task_id}</strong></td>
+                            <td>
+                              <span className={`status-pill ${log.action === "APPROVE" ? "verified" : log.action === "REJECT" ? "failed" : "warning"}`} style={{ fontWeight: 800 }}>
+                                {log.action}
+                              </span>
+                            </td>
+                            <td>
+                              <code style={{ fontSize: "11px" }}>
+                                {log.previous_status || "—"} → {log.new_status || "—"}
+                              </code>
+                            </td>
+                            <td style={{ maxWidth: "300px", whiteSpace: "normal", fontSize: "11px" }}>{log.reason}</td>
+                            <td style={{ fontSize: "11px" }}>{new Date(log.created_at).toLocaleString()}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
         ) : activeTab === "users" ? (
           /* =====================================================
               USERS MANAGEMENT VIEW

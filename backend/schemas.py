@@ -57,9 +57,14 @@ class TaskResponse(BaseModel):
     description: Optional[str] = None
     task_type: str
     status: str
+    execution_status: str
     confidence_score: Optional[float] = None
     final_result: Optional[str] = None
     reference_count: int = 0
+    review_status: str
+    plan: Optional[dict] = None
+    verification_status: Optional[str] = None
+    verification_explanation: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -112,7 +117,7 @@ class UserResponse(UserBase):
 
     created_at: datetime
 
-    avatar_url: Optional[str] = None
+    profile_image: Optional[str] = None
 
     terms_accepted: bool
     privacy_accepted: bool
@@ -134,7 +139,7 @@ class UserProfileUpdate(BaseModel):
         min_length=3,
         max_length=100
     )
-    avatar_url: Optional[str] = Field(
+    profile_image: Optional[str] = Field(
         default=None,
         max_length=500
     )
@@ -234,3 +239,167 @@ class ContactMessageResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+# ============================================================
+# VERIFICATION ASSISTANT SCHEMAS
+# ============================================================
+
+class VerificationMessageCreate(BaseModel):
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+    )
+
+
+class VerificationMessageResponse(BaseModel):
+    id: int
+    task_id: int
+    user_id: int
+    sender: str
+    message: str
+    message_type: str
+    created_at: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+class VerificationDetailResponse(TaskResponse):
+    messages: list[VerificationMessageResponse] = []
+
+
+class AdminTaskUpdate(BaseModel):
+    status: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+    )
+    confidence_score: Optional[float] = Field(
+        default=None,
+        ge=0,
+        le=100,
+    )
+    final_result: Optional[str] = Field(
+        default=None,
+        max_length=10000,
+    )
+    review_status: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+    )
+
+
+# ============================================================
+# AGENT PLAN SCHEMAS
+# ============================================================
+
+class AgentStep(BaseModel):
+    step_number: int
+    description: str
+    action: str
+    tool: str
+    expected_output: str
+    requires_confirmation: bool
+
+class AgentPlan(BaseModel):
+    objective: str
+    task_type: str
+    steps: list[AgentStep]
+    required_tools: list[str]
+    evidence_requirements: list[str]
+    verification_requirements: list[str]
+    risk_level: str
+
+class AgentPlanRequest(BaseModel):
+    task_text: str = Field(..., min_length=5, max_length=1000)
+
+class AgentPlanResponse(BaseModel):
+    task_id: int
+    plan: AgentPlan
+
+
+class AgentExecuteRequest(BaseModel):
+    task_id: int
+    confirm_action_id: Optional[int] = None
+
+
+class AgentExecuteResponse(BaseModel):
+    task_id: int
+    status: str
+    result: str
+
+
+class AdminAgentActionResponse(BaseModel):
+    id: int
+    user_id: int
+    task_id: Optional[int] = None
+    tool_name: str
+    input_data: Optional[dict] = None
+    result_data: Optional[dict] = None
+    status: str
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminProductSearchResponse(BaseModel):
+    id: int
+    user_id: int
+    query: str
+    filters: Optional[dict] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    admin_user_id: int
+    task_id: int
+    action: str
+    previous_status: Optional[str] = None
+    new_status: Optional[str] = None
+    reason: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReviewActionRequest(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=2000)
+    confidence_score: Optional[float] = Field(None, ge=0, le=100)
+    final_result: Optional[str] = Field(None, max_length=10000)
+
+
+class UserSettingsUpdateRequest(BaseModel):
+    memory_enabled: bool
+
+
+class TaskFeedbackRequest(BaseModel):
+    rating: str = Field(..., min_length=1, max_length=30)
+    comment: Optional[str] = Field(None, max_length=2000)
+
+
+class ConnectionCreateRequest(BaseModel):
+    provider: str = Field(..., min_length=1, max_length=50)
+    provider_account_id: str = Field(..., min_length=1, max_length=100)
+    scopes: Optional[str] = None
+    credentials: str = Field(..., min_length=1, max_length=5000)
+
+
+class AgentFeedbackCreateRequest(BaseModel):
+    task_id: int
+    agent_id: Optional[str] = None
+    rating: str = Field(..., min_length=1, max_length=20) # thumbs_up, thumbs_down, incorrect
+    comment: Optional[str] = Field(None, max_length=2000)
+
+
+class ActionConfirmRequest(BaseModel):
+    confirmation_id: str = Field(..., min_length=1, max_length=50)
+    tool_id: str = Field(..., min_length=1, max_length=50)
+    arguments: dict = Field(..., description="Action parameter arguments to verify hash integrity.")

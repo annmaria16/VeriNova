@@ -70,8 +70,8 @@
     border-radius: 11px;
 
     background: linear-gradient(135deg,
-            #ff641f,
-            #ff8a4c);
+            var(--dash-primary),
+            var(--dash-hover));
 
     color: #ffffff;
 
@@ -98,7 +98,7 @@
 }
 
 .admin-logo-name span {
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-logo-subtitle {
@@ -178,7 +178,7 @@
 
 .admin-nav-item:hover {
     background: #fff4ed;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-nav-item.active {
@@ -186,7 +186,7 @@
             #fff0e7,
             #fff8f4);
 
-    color: #ff641f;
+    color: var(--dash-primary);
 
     font-weight: 650;
 }
@@ -203,7 +203,7 @@
 
     border-radius: 0 5px 5px 0;
 
-    background: #ff641f;
+    background: var(--dash-primary);
 }
 
 .admin-nav-badge {
@@ -221,7 +221,7 @@
     border-radius: 20px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 
     font-size: 10px;
     font-weight: 700;
@@ -260,7 +260,7 @@
 
     border-radius: 10px;
 
-    background: #ff641f;
+    background: var(--dash-primary);
     color: #ffffff;
 
     font-size: 12px;
@@ -436,7 +436,7 @@
 }
 
 .admin-icon-button:hover {
-    color: #ff641f;
+    color: var(--dash-primary);
     background: #fff5ef;
     border-color: #ffd0bc;
 }
@@ -468,7 +468,7 @@
 }
 
 .admin-welcome h1 span {
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-welcome p {
@@ -565,7 +565,7 @@
     border-radius: 11px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-stat-icon svg {
@@ -721,7 +721,7 @@
 
 .admin-chart-period button.active {
     background: #ffffff;
-    color: #ff641f;
+    color: var(--dash-primary);
 
     box-shadow:
         0 2px 6px rgba(0, 0, 0, 0.06);
@@ -781,7 +781,7 @@
 }
 
 .admin-status-dot.running {
-    background: #ff641f;
+    background: var(--dash-primary);
 }
 
 
@@ -869,7 +869,7 @@
     border-radius: 8px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 
     font-size: 10px;
     font-weight: 700;
@@ -943,11 +943,11 @@
 
 .admin-status-badge.running {
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-status-badge.running::before {
-    background: #ff641f;
+    background: var(--dash-primary);
 }
 
 
@@ -978,8 +978,8 @@
     border-radius: inherit;
 
     background: linear-gradient(90deg,
-            #ff8a4c,
-            #ff641f);
+            var(--dash-hover),
+            var(--dash-primary));
 }
 
 .admin-confidence-value {
@@ -1020,9 +1020,9 @@
 }
 
 .admin-btn-primary {
-    border: 1px solid #ff641f;
+    border: 1px solid var(--dash-primary);
 
-    background: #ff641f;
+    background: var(--dash-primary);
     color: #ffffff;
 
     box-shadow:
@@ -1049,7 +1049,7 @@
     border-color: #ffc5aa;
 
     background: #fff7f2;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-btn-danger {
@@ -1154,7 +1154,7 @@
     border-radius: 9px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-quick-action-icon svg {
@@ -1215,7 +1215,7 @@
     border-radius: 10px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 
     font-size: 10px;
     font-weight: 700;
@@ -1289,97 +1289,6 @@
     outline: none;
 }
 
-
-/* ---------------------------------------------------------
-   22. PRODUCTS / SERVICES
-   --------------------------------------------------------- */
-
-.admin-product-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fill, minmax(220px, 1fr));
-
-    gap: 15px;
-}
-
-.admin-product-card {
-    overflow: hidden;
-
-    border: 1px solid #f0e2da;
-    border-radius: 14px;
-
-    background: #ffffff;
-
-    transition: 0.2s ease;
-}
-
-.admin-product-card:hover {
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 10px 25px rgba(255, 100, 31, 0.08);
-}
-
-.admin-product-image {
-    width: 100%;
-    height: 140px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #fff6f1;
-
-    overflow: hidden;
-}
-
-.admin-product-image img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-.admin-product-placeholder {
-    color: #ff641f;
-    opacity: 0.55;
-}
-
-.admin-product-content {
-    padding: 14px;
-}
-
-.admin-product-name {
-    font-size: 13px;
-    font-weight: 750;
-}
-
-.admin-product-category {
-    margin-top: 4px;
-
-    font-size: 9px;
-    color: #999999;
-}
-
-.admin-product-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-top: 13px;
-}
-
-.admin-product-price {
-    font-size: 15px;
-    font-weight: 800;
-    color: #ff641f;
-}
-
-.admin-product-stock {
-    font-size: 9px;
-    color: #777777;
-}
 
 
 /* ---------------------------------------------------------
@@ -1556,7 +1465,7 @@
     border-radius: 14px;
 
     background: #fff0e7;
-    color: #ff641f;
+    color: var(--dash-primary);
 }
 
 .admin-empty-title {
@@ -1593,7 +1502,7 @@
     height: 28px;
 
     border: 3px solid #ffe1d2;
-    border-top-color: #ff641f;
+    border-top-color: var(--dash-primary);
 
     border-radius: 50%;
 
@@ -1648,7 +1557,7 @@
     border: 2px solid #ffffff;
     border-radius: 50%;
 
-    background: #ff641f;
+    background: var(--dash-primary);
 }
 
 
@@ -1697,14 +1606,14 @@
 }
 
 .admin-page-button:hover {
-    color: #ff641f;
+    color: var(--dash-primary);
     border-color: #ffc5aa;
 }
 
 .admin-page-button.active {
-    border-color: #ff641f;
+    border-color: var(--dash-primary);
 
-    background: #ff641f;
+    background: var(--dash-primary);
     color: #ffffff;
 }
 

@@ -1,8 +1,9 @@
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, LogOut, Loader2 } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import Logo from "../components/Logo";
 
 export default function Welcome() {
   const { user, logout } = useAuth();
@@ -35,19 +36,7 @@ export default function Welcome() {
 
       {/* Header bar */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between z-10">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-[#FF6B00] to-[#FF8A1F] p-2 rounded-xl shadow-lg shadow-orange-500/10">
-            <ShieldCheck className="text-white" size={24} />
-          </div>
-          <div className="text-left">
-            <h1 className="text-xl font-black text-dash-text tracking-wide leading-none">
-              VeriNova AI
-            </h1>
-            <p className="text-dash-secondary text-[10px] tracking-[0.15em] font-bold uppercase mt-1">
-              Outcome Verification
-            </p>
-          </div>
-        </div>
+        <Logo subtitle="Outcome Verification" />
       </header>
 
       {/* Welcome Card Container */}

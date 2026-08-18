@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "../hooks/useTheme";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -10,6 +11,8 @@ interface AuthLayoutProps {
 }
 
 export default function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="min-h-screen bg-dash-bg text-dash-text flex flex-col relative overflow-hidden bg-grid-pattern">
       {/* Decorative Orbs */}
@@ -31,6 +34,14 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
             </p>
           </div>
         </Link>
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 text-dash-secondary hover:text-dash-primary hover:bg-dash-primary/5 rounded-xl cursor-pointer transition-colors"
+          aria-label="Toggle Theme"
+        >
+          {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        </button>
       </header>
 
       {/* Main Form Content Container */}

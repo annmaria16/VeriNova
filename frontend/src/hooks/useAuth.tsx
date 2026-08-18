@@ -9,7 +9,7 @@ interface UserProfile {
   provider: string;
   role: "user" | "admin";
   created_at: string;
-  avatar_url?: string | null;
+  profile_image?: string | null;
   terms_accepted: boolean;
   privacy_accepted: boolean;
   terms_version?: string | null;
